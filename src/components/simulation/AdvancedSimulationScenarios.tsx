@@ -7,10 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Play, 
-  Pause, 
-  Square, 
   BarChart3, 
-  AlertTriangle, 
   CheckCircle, 
   Clock,
   Users,
@@ -23,8 +20,8 @@ import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/Card';
 import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
-import { enhancedSimulationService, type SimulationScenario } from '../../services/simulation/enhancedSimulationService';
-import { agentSimulationService } from '../../services/ai/agentSimulationService';
+import { enhancedSimulationService } from '../../services/simulation/enhancedSimulationService';
+import { type SimulationScenario } from '../../types/index';
 import { toast } from 'sonner';
 
 interface ScenarioExecution {
@@ -46,7 +43,6 @@ interface ScenarioExecution {
 export const AdvancedSimulationScenarios: React.FC = () => {
   const [scenarios, setScenarios] = useState<SimulationScenario[]>([]);
   const [executions, setExecutions] = useState<Map<string, ScenarioExecution>>(new Map());
-  const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
@@ -91,7 +87,6 @@ export const AdvancedSimulationScenarios: React.FC = () => {
             weight: 0.3
           }
         ],
-        agents: [],
         interactions: [
           {
             id: 'angry-customer',
@@ -146,7 +141,6 @@ export const AdvancedSimulationScenarios: React.FC = () => {
             weight: 0.35
           }
         ],
-        agents: [],
         interactions: [
           {
             id: 'lead-handoff',
@@ -195,7 +189,6 @@ export const AdvancedSimulationScenarios: React.FC = () => {
             weight: 0.3
           }
         ],
-        agents: [],
         interactions: [
           {
             id: 'research-writing',
@@ -244,7 +237,6 @@ export const AdvancedSimulationScenarios: React.FC = () => {
             weight: 0.3
           }
         ],
-        agents: [],
         interactions: [
           {
             id: 'emergency-escalation',
@@ -266,7 +258,6 @@ export const AdvancedSimulationScenarios: React.FC = () => {
     }
 
     setIsRunning(true);
-    setSelectedScenario(scenario.id);
 
     const execution: ScenarioExecution = {
       id: `exec-${Date.now()}`,
@@ -302,11 +293,7 @@ export const AdvancedSimulationScenarios: React.FC = () => {
       }
 
       // Run the actual simulation
-      const result = await enhancedSimulationService.runSimulation(scenario.id, {
-        duration: scenario.environment.timeLimit || 300000,
-        intensity: scenario.environment.complexity === 'extreme' ? 'high' : 'medium',
-        participants: scenario.interactions.length || 2
-      });
+      const result = await enhancedSimulationService.startSimulation(scenario.id);
 
       // Generate metrics based on scenario type
       const metrics = generateScenarioMetrics(scenario, result);
@@ -342,11 +329,10 @@ export const AdvancedSimulationScenarios: React.FC = () => {
       });
     } finally {
       setIsRunning(false);
-      setSelectedScenario(null);
     }
   };
 
-  const generateScenarioMetrics = (scenario: SimulationScenario, result: any) => {
+  const generateScenarioMetrics = (_scenario: SimulationScenario, _result: any) => {
     // Simulate realistic metrics based on scenario objectives
     const baseScore = Math.random() * 0.3 + 0.6; // 60-90% base
     

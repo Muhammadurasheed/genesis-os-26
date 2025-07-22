@@ -143,12 +143,11 @@ const mockAgentTemplates: AgentTemplate[] = [
 ];
 
 export const AgentMarketplace: React.FC = () => {
-  const [templates, setTemplates] = useState<AgentTemplate[]>(mockAgentTemplates);
+  const [templates] = useState<AgentTemplate[]>(mockAgentTemplates);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState<'popularity' | 'rating' | 'recent' | 'price'>('popularity');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<AgentTemplate | null>(null);
 
   const categories = ['All', ...new Set(templates.map(t => t.category))];
 
@@ -190,14 +189,10 @@ export const AgentMarketplace: React.FC = () => {
     }, 2000);
   };
 
-  const handleForkTemplate = (template: AgentTemplate) => {
-    toast.success(`Forking ${template.name}...`, {
-      description: 'Creating your own copy to customize'
-    });
-  };
-
   const handlePreviewTemplate = (template: AgentTemplate) => {
-    setSelectedTemplate(template);
+    toast.success(`Previewing ${template.name}...`, {
+      description: 'Opening template preview'
+    });
   };
 
   const renderPricingBadge = (pricing: AgentTemplate['pricing']) => {

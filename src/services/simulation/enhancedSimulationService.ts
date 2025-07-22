@@ -132,13 +132,13 @@ export class EnhancedSimulationService {
           {
             id: 'response-time',
             description: 'Maintain response time under 30 seconds',
-            success_criteria: 'average_response_time < 30',
+            target: 30,
             weight: 0.4
           },
           {
             id: 'resolution-rate',
             description: 'Resolve 90% of issues successfully',
-            success_criteria: 'resolution_rate >= 0.9',
+            target: 0.9,
             weight: 0.6
           }
         ],
@@ -164,9 +164,9 @@ export class EnhancedSimulationService {
         ],
         interactions: [
           {
-            source: 'support-agent-1',
-            target: 'technical-agent-1',
+            id: 'escalation-1',
             type: 'escalation',
+            description: 'Support agent escalates to technical specialist',
             frequency: 0.2
           }
         ]
@@ -185,19 +185,19 @@ export class EnhancedSimulationService {
           {
             id: 'innovation',
             description: 'Generate innovative design concepts',
-            success_criteria: 'innovation_score > 0.8',
+            target: 0.8,
             weight: 0.4
           },
           {
             id: 'feasibility',
             description: 'Ensure technical and market feasibility',
-            success_criteria: 'feasibility_score > 0.7',
+            target: 0.7,
             weight: 0.3
           },
           {
             id: 'collaboration',
             description: 'Effective team collaboration',
-            success_criteria: 'collaboration_score > 0.8',
+            target: 0.8,
             weight: 0.3
           }
         ],
@@ -232,21 +232,21 @@ export class EnhancedSimulationService {
         ],
         interactions: [
           {
-            source: 'designer-agent',
-            target: 'product-manager',
+            id: 'design-review',
             type: 'review_feedback',
+            description: 'Designer shares concepts with product manager',
             frequency: 0.3
           },
           {
-            source: 'product-manager',
-            target: 'developer-agent',
+            id: 'feasibility-check',
             type: 'feasibility_check',
+            description: 'Product manager validates with technical lead',
             frequency: 0.4
           },
           {
-            source: 'developer-agent',
-            target: 'designer-agent',
+            id: 'tech-constraints',
             type: 'technical_constraints',
+            description: 'Developer provides technical feedback to designer',
             frequency: 0.2
           }
         ]

@@ -133,6 +133,39 @@ export interface SimulationResult {
   created_at: string;
 }
 
+// Enhanced Simulation Types for Phase 3
+export interface SimulationScenario {
+  id: string;
+  name: string;
+  description: string;
+  type: 'stress-test' | 'integration' | 'performance' | 'behavior' | 'collaboration';
+  environment: {
+    constraints: Record<string, any>;
+    resources: Record<string, any>;
+    timeLimit?: number;
+    complexity: 'low' | 'medium' | 'high' | 'extreme';
+  };
+  objectives: Array<{
+    id: string;
+    description: string;
+    target: number;
+    weight: number;
+  }>;
+  agents?: Array<{
+    id: string;
+    name: string;
+    role: string;
+    capabilities: string[];
+  }>;
+  interactions: Array<{
+    id: string;
+    type: string;
+    description: string;
+    frequency: number;
+    source?: string;
+  }>;
+}
+
 // UI State Types
 export interface WizardState {
   step: 'welcome' | 'intent' | 'blueprint' | 'canvas' | 'credentials' | 'simulation' | 'deployment';
