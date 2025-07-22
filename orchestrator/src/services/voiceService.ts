@@ -15,8 +15,10 @@ class VoiceService {
     // Initialize ElevenLabs client if credentials are available
     if (ELEVENLABS_API_KEY) {
       try {
-        const { ElevenLabs } = require('elevenlabs-node');
-        this.client = new ElevenLabs(ELEVENLABS_API_KEY);
+        const ElevenLabs = require('elevenlabs-node');
+        this.client = new ElevenLabs({
+          apiKey: ELEVENLABS_API_KEY
+        });
         console.log('🔊 ElevenLabs client initialized');
       } catch (error) {
         console.warn('⚠️ ElevenLabs Node SDK not available:', error);

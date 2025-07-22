@@ -95,7 +95,15 @@ async function initializeClients() {
   }
 }
 
-// Health check endpoint
+// Health check endpoints
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    message: "GenesisOS Orchestrator is running",
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/', (req, res) => {
   const gemini_key = process.env.GEMINI_API_KEY;
   const elevenlabs_key = process.env.ELEVENLABS_API_KEY;
@@ -429,6 +437,31 @@ agentRouter.get('/video/avatars', async (req, res) => {
       success: false
     });
   }
+});
+
+// Health endpoints for agent services
+agentRouter.get('/health', (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    service: "agent-service",
+    timestamp: new Date().toISOString()
+  });
+});
+
+agentRouter.get('/voice/health', (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    service: "voice-service",
+    timestamp: new Date().toISOString()
+  });
+});
+
+agentRouter.get('/video/health', (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    service: "video-service",
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Mount the agent router

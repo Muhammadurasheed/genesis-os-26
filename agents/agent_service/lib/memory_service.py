@@ -27,7 +27,7 @@ PINECONE_ENVIRONMENT = os.getenv("PINECONE_ENVIRONMENT")  # This is now optional
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "genesis-memory")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 MEMORY_CACHE_TTL = int(os.getenv("MEMORY_CACHE_TTL", "3600"))  # 1 hour default
-MEMORY_DEFAULT_DIMENSION = int(os.getenv("MEMORY_DEFAULT_DIMENSION", "768"))
+MEMORY_DEFAULT_DIMENSION = int(os.getenv("MEMORY_DEFAULT_DIMENSION", "1024"))
 MEMORY_ENABLE_LOCAL_EMBEDDING = os.getenv("MEMORY_ENABLE_LOCAL_EMBEDDING", "true").lower() == "true"
 
 class MemoryService:
