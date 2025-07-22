@@ -5,7 +5,6 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { multiModelReasoningService } from '../ai/multiModelReasoningService';
-import agentMemoryService from '../memory/agentMemoryService';
 
 interface LearningExperience {
   id: string;
