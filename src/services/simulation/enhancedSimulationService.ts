@@ -32,14 +32,14 @@ export interface SimulationScenario {
   objectives: Array<{
     id: string;
     description: string;
-    success_criteria: string;
+    target: number;
     weight: number;
   }>;
   participants: SimulationAgent[];
   interactions: Array<{
-    source: string;
-    target: string;
+    id: string;
     type: string;
+    description: string;
     frequency: number;
   }>;
 }
