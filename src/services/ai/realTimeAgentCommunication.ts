@@ -270,10 +270,6 @@ export class RealTimeAgentCommunication {
     }
   }
 
-  private async handleCollaborationUpdate(agentId: string, payload: any): Promise<void> {
-    console.log(`🤝 Agent ${agentId} collaboration update:`, payload);
-    // Handle collaboration status changes, new participants, etc.
-  }
 
   private async processDirectMessage(agentId: string, _message: AgentMessage): Promise<void> {
     // Store message in agent's memory for context

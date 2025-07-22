@@ -4,7 +4,6 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { multiModelReasoningService } from './multiModelReasoningService';
 
 interface PredictionModel {
   id: string;
@@ -380,28 +379,11 @@ export class PredictiveAnalyticsEngine {
     }
   }
 
-  private async analyzeDataForModel(model: PredictionModel, data: any[]): Promise<{ accuracy: number; insights: string[] }> {
-    const analysisPrompt = `
-      Analyze this dataset for machine learning model creation:
-      
-      Model Type: ${model.type}
-      Category: ${model.category}
-      Target Variable: ${model.target_variable}
-      Features: ${model.features.join(', ')}
-      
-      Sample Data (first 10 records):
-      ${JSON.stringify(data.slice(0, 10), null, 2)}
-      
-      Dataset size: ${data.length} records
-      
-      Provide analysis on:
-      1. Data quality and completeness
-      2. Feature correlations and importance
-      3. Predicted model accuracy
-      4. Key insights for optimization
-      
-      Format as JSON with accuracy (0-1) and insights array.
-    `;
+  private async analyzeDataForModel(_model: PredictionModel, _data: any[]): Promise<{ accuracy: number; insights: string[] }> {
+    // Analyze dataset for machine learning model creation
+    // Model Type: ${model.type}, Category: ${model.category}
+    // Target Variable: ${model.target_variable}, Features: ${model.features.join(', ')}
+    // Dataset size: ${data.length} records
 
     // Use AI for analysis in production
     // const analysis = await multiModelReasoningService.reasonWithConsensus(...);
@@ -412,21 +394,10 @@ export class PredictiveAnalyticsEngine {
     };
   }
 
-  private async generatePredictions(model: PredictionModel, inputData: any, horizon: number): Promise<any[]> {
-    const predictionPrompt = `
-      Generate predictions using this trained model:
-      
-      Model: ${model.name} (${model.type})
-      Features: ${model.features.join(', ')}
-      Target: ${model.target_variable}
-      Prediction Horizon: ${horizon} hours
-      
-      Input Data:
-      ${JSON.stringify(inputData, null, 2)}
-      
-      Provide detailed predictions with confidence scores and contributing factors.
-      Format as JSON array with value, confidence, and contributing_factors for each prediction.
-    `;
+  private async generatePredictions(_model: PredictionModel, _inputData: any, _horizon: number): Promise<any[]> {
+    // Generate predictions using trained model
+    // Model: ${model.name} (${model.type}), Features: ${model.features.join(', ')}
+    // Target: ${model.target_variable}, Prediction Horizon: ${horizon} hours
 
     // Use AI for predictions in production
     // const predictions = await multiModelReasoningService.reasonWithConsensus(...);
@@ -469,31 +440,9 @@ export class PredictiveAnalyticsEngine {
     };
   }
 
-  private async analyzeDataForPatterns(data: any[], category: string): Promise<{ patterns: any[] }> {
-    const patternPrompt = `
-      Analyze this dataset for significant patterns:
-      
-      Category: ${category}
-      Dataset size: ${data.length} records
-      
-      Sample data:
-      ${JSON.stringify(data.slice(0, 5), null, 2)}
-      
-      Identify:
-      1. Trends (increasing/decreasing patterns)
-      2. Cycles (recurring patterns)
-      3. Anomalies (unusual deviations)
-      4. Correlations (relationships between variables)
-      
-      For each pattern, provide:
-      - type (trend/cycle/anomaly/correlation)
-      - description
-      - strength (0-1)
-      - frequency
-      - statistical significance (0-1)
-      
-      Format as JSON with patterns array.
-    `;
+  private async analyzeDataForPatterns(data: any[], _category: string): Promise<{ patterns: any[] }> {
+    // Analyze dataset for significant patterns
+    // Category: ${category}, Dataset size: ${data.length} records
 
     // Use AI for pattern analysis in production
     // const analysis = await multiModelReasoningService.reasonWithConsensus(...);
