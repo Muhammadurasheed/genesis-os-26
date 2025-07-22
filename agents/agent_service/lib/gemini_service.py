@@ -546,7 +546,7 @@ class GeminiService:
         else:
             return [self._generate_single_mock_embedding() for _ in texts]
     
-    def _generate_single_mock_embedding(self, dimensions: int = 768) -> List[float]:
+    def _generate_single_mock_embedding(self, dimensions: int = 1024) -> List[float]:
         """Generate a single mock embedding vector.
         
         Args:

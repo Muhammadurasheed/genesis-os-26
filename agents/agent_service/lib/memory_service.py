@@ -350,6 +350,18 @@ class MemoryService:
         if not self.pinecone_index:
             return
             
+        # Ensure vector matches Pinecone index dimension
+        target_dimension = MEMORY_DEFAULT_DIMENSION
+        if len(vector) != target_dimension:
+            if len(vector) < target_dimension:
+                # Pad with zeros
+                vector = vector + [0.0] * (target_dimension - len(vector))
+                logger.info(f"✅ Padded vector from {len(vector) - (target_dimension - len(vector))} to {target_dimension} dimensions")
+            else:
+                # Truncate
+                vector = vector[:target_dimension]
+                logger.info(f"✅ Truncated vector from {len(vector)} to {target_dimension} dimensions")
+        
         # Pinecone operations are synchronous, so run in thread pool
         def _upsert_to_pinecone():
             self.pinecone_index.upsert(

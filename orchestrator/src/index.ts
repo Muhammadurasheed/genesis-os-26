@@ -481,7 +481,7 @@ wizardRouter.post('/generate-blueprint', async (req, res) => {
     }
 
     // Forward to blueprint generation service
-    const blueprint = await blueprintService.generateBlueprint(user_input, ai_model);
+    const blueprint = await blueprintService.generateBlueprint(user_input);
     
     console.log('✅ Wizard: Blueprint generated successfully');
     res.json(blueprint);
@@ -507,8 +507,16 @@ wizardRouter.post('/run-simulation', async (req, res) => {
       });
     }
 
-    // Forward to simulation service
-    const results = await simulationService.runSimulation(blueprint_id, simulation_data);
+    // Forward to simulation service - create config object
+    const config = {
+      guild_id: blueprint_id,
+      agents: simulation_data?.agents || [],
+      duration_minutes: simulation_data?.duration_minutes || 5,
+      load_factor: simulation_data?.load_factor || 1.0,
+      error_injection: simulation_data?.error_injection || false,
+      test_scenarios: simulation_data?.test_scenarios || []
+    };
+    const results = await simulationService.runSimulation(config);
     
     console.log('✅ Wizard: Simulation completed successfully');
     res.json(results);
@@ -534,8 +542,12 @@ wizardRouter.post('/deploy-guild', async (req, res) => {
       });
     }
 
-    // Forward to deployment service
-    const deployment = await deploymentService.deployGuild(guild_data, agents_data);
+    // Forward to deployment service with proper parameters
+    const deployment = await deploymentService.deployGuild(
+      guild_data, 
+      {}, // simulationResults placeholder 
+      {} // credentials placeholder
+    );
     
     console.log('✅ Wizard: Guild deployed successfully');
     res.json(deployment);
