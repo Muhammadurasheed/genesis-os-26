@@ -259,12 +259,15 @@ export const apiMethods = {
       const preferredModel = localStorage.getItem('preferred_ai_model');
       console.log('🧠 Using AI model:', preferredModel || 'default (Gemini Pro)');
       
-      const response = await api.post('/wizard/generate-blueprint', { 
-        user_input: userInput 
-      });
+      // Use microservice manager for wizard calls
+      const microserviceManager = (await import('../services/core/microserviceManager')).default;
+      const response = await microserviceManager.callService('wizard', '/generate-blueprint', {
+        user_input: userInput,
+        ai_model: preferredModel || 'gemini-pro'
+      }, 'POST');
       
-      console.log('✅ Phase 3: Blueprint generated successfully with real AI:', response.data.id);
-      return response.data;
+      console.log('✅ Phase 3: Blueprint generated successfully with real AI:', response.id);
+      return response;
     } catch (error: any) {
       console.error('❌ Phase 3: Blueprint generation failed:', error.response?.data || error.message);
       
@@ -309,13 +312,17 @@ export const apiMethods = {
     try {
       console.log('🏰 Phase 3: Creating guild with real API:', guildData.name);
       
-      const response = await api.post('/guilds', {
-        ...guildData,
-        user_id: getCurrentUserId()
-      });
+      // Use microservice manager for guild creation calls
+      const microserviceManager = (await import('../services/core/microserviceManager')).default;
+      const response = await microserviceManager.callService('wizard', '/deploy-guild', {
+        guild_data: {
+          ...guildData,
+          user_id: getCurrentUserId()
+        }
+      }, 'POST');
       
-      console.log('✅ Phase 3: Guild created successfully:', response.data.id);
-      return response.data;
+      console.log('✅ Phase 3: Guild created successfully:', response.id);
+      return response;
     } catch (error: any) {
       console.error('❌ Phase 3: Guild creation failed:', error.response?.data || error.message);
       
@@ -431,8 +438,25 @@ export const apiMethods = {
   runSimulation: async (guildId: string, testData: any) => {
     console.log('🧪 Phase 3: Running guild simulation with real-time processing:', guildId);
     
-    // Always use simulation since it's complex
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    if (!hasRealBackend && isDevelopment) {
+      console.log('🧪 Phase 3: Development mode - trying orchestrator first...');
+      
+      try {
+        // Use microservice manager for simulation calls
+        const microserviceManager = (await import('../services/core/microserviceManager')).default;
+        const response = await microserviceManager.callService('wizard', '/run-simulation', {
+          blueprint_id: guildId,
+          simulation_data: testData
+        }, 'POST');
+        
+        console.log('✅ Phase 3: Simulation completed via orchestrator');
+        return response;
+      } catch (error) {
+        console.log('⚠️ Phase 3: Orchestrator unavailable, using mock simulation');
+        // Fall back to mock simulation
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+    }
     
     const results = {
       id: `sim-${Date.now()}`,

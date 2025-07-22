@@ -464,7 +464,92 @@ agentRouter.get('/video/health', (req, res) => {
   });
 });
 
-// Mount the agent router
+// Wizard API endpoints
+const wizardRouter = express.Router();
+
+// Generate blueprint endpoint for wizard
+wizardRouter.post('/generate-blueprint', async (req, res) => {
+  try {
+    console.log('🧠 Wizard: Generating blueprint via orchestrator...');
+    const { user_input, ai_model = 'gemini-pro' } = req.body;
+    
+    if (!user_input) {
+      return res.status(400).json({ 
+        error: 'user_input is required',
+        details: 'Please provide user input to generate blueprint'
+      });
+    }
+
+    // Forward to blueprint generation service
+    const blueprint = await blueprintService.generateBlueprint(user_input, ai_model);
+    
+    console.log('✅ Wizard: Blueprint generated successfully');
+    res.json(blueprint);
+  } catch (error: any) {
+    console.error('❌ Wizard: Blueprint generation failed:', error);
+    res.status(500).json({ 
+      error: 'Blueprint generation failed',
+      details: error.message || 'Unknown error occurred'
+    });
+  }
+});
+
+// Run simulation endpoint for wizard
+wizardRouter.post('/run-simulation', async (req, res) => {
+  try {
+    console.log('🧪 Wizard: Running simulation via orchestrator...');
+    const { blueprint_id, simulation_data } = req.body;
+    
+    if (!blueprint_id) {
+      return res.status(400).json({ 
+        error: 'blueprint_id is required',
+        details: 'Please provide blueprint ID for simulation'
+      });
+    }
+
+    // Forward to simulation service
+    const results = await simulationService.runSimulation(blueprint_id, simulation_data);
+    
+    console.log('✅ Wizard: Simulation completed successfully');
+    res.json(results);
+  } catch (error: any) {
+    console.error('❌ Wizard: Simulation failed:', error);
+    res.status(500).json({ 
+      error: 'Simulation failed',
+      details: error.message || 'Unknown error occurred'
+    });
+  }
+});
+
+// Deploy guild endpoint for wizard
+wizardRouter.post('/deploy-guild', async (req, res) => {
+  try {
+    console.log('🚀 Wizard: Deploying guild via orchestrator...');
+    const { guild_data, agents_data } = req.body;
+    
+    if (!guild_data) {
+      return res.status(400).json({ 
+        error: 'guild_data is required',
+        details: 'Please provide guild data for deployment'
+      });
+    }
+
+    // Forward to deployment service
+    const deployment = await deploymentService.deployGuild(guild_data, agents_data);
+    
+    console.log('✅ Wizard: Guild deployed successfully');
+    res.json(deployment);
+  } catch (error: any) {
+    console.error('❌ Wizard: Guild deployment failed:', error);
+    res.status(500).json({ 
+      error: 'Guild deployment failed',
+      details: error.message || 'Unknown error occurred'
+    });
+  }
+});
+
+// Mount the routers
+app.use('/api/wizard', wizardRouter);
 app.use('/api/agent', agentRouter);
 
 // Analytics endpoints

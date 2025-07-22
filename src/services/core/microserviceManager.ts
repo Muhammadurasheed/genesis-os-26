@@ -34,6 +34,7 @@ class MicroserviceManager {
     
     // Register default services
     this.registerService('orchestrator', `${baseUrl}`, 10000, 3);
+    this.registerService('wizard', `${baseUrl}/api/wizard`, 15000, 3);
     this.registerService('agent-service', `${baseUrl}/api/agent`, 15000, 2);
     this.registerService('voice-service', `${baseUrl}/api/agent/voice`, 20000, 2);
     this.registerService('video-service', `${baseUrl}/api/agent/video`, 30000, 2);
