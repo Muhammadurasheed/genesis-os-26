@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { EnterpriseQuantumCanvas } from './EnterpriseQuantumCanvas';
+import { ProductionCanvas } from './ProductionCanvas';
 import { InviteCollaboratorDialog } from '../collaboration/InviteCollaboratorDialog';
 import { Node } from '@xyflow/react';
 import { NodeData, CanvasEdge } from '../../types/canvas';
@@ -32,7 +32,7 @@ export function CanvasWithCollaboration({
 
   return (
     <>
-      <EnterpriseQuantumCanvas
+      <ProductionCanvas
         nodes={nodes}
         edges={edges}
         onSaveBlueprint={onSaveBlueprint}

@@ -26,7 +26,7 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
 # Agent configuration
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-flash")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-1.5-flash")
 AGENT_MEMORY_ENABLED = os.getenv("AGENT_MEMORY_ENABLED", "true").lower() == "true"
 VOICE_ENABLED = os.getenv("VOICE_ENABLED", "true").lower() == "true"
 

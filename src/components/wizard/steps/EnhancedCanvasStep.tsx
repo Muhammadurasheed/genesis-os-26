@@ -6,7 +6,7 @@ import { useWizardStore } from '../../../stores/wizardStore';
 import { useCanvasStore } from '../../../stores/canvasStore';
 import { useCollaborationStore } from '../../../stores/collaborationStore';
 import { CanvasWithCollaboration } from '../../canvas/CanvasWithCollaboration';
-import { canvasService } from '../../../services/canvasService';
+import { enterpriseCanvasService } from '../../../services/enterpriseCanvasService';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/Card';
 import { Badge } from '../../ui/badge';
@@ -63,8 +63,8 @@ export const EnhancedCanvasStep: React.FC = () => {
     try {
       console.log('🎨 AI Canvas Generation: Processing blueprint...', blueprint.id);
       
-      // Generate canvas using the canvas service
-      const { nodes: generatedNodes, edges: generatedEdges } = await canvasService.generateCanvasFromBlueprint(blueprint);
+      // Generate canvas using the enterprise canvas service
+      const { nodes: generatedNodes, edges: generatedEdges } = await enterpriseCanvasService.generateEnterpriseCanvas(blueprint);
       
       // Update canvas store with generated nodes and edges
       const canvasStore = useCanvasStore.getState();
