@@ -204,7 +204,9 @@ const ProductionTriggerNode = ({ data, selected }: { data: any; selected: boolea
           <div className="p-3 bg-emerald-100/50 dark:bg-emerald-900/30 rounded-xl mb-4 border border-emerald-200/50 dark:border-emerald-800/50">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-emerald-600" />
-              <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">{data.schedule}</p>
+              <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                {data.schedule.frequency} • Next: {data.schedule.nextRun || 'Not scheduled'}
+              </p>
             </div>
           </div>
         )}
