@@ -20,7 +20,7 @@ export const GenesisTriggerNode: React.FC<any> = ({ data }) => {
   };
 
   return (
-    <div className="relative bg-white rounded-xl shadow-lg border border-gray-200 p-4 min-w-[160px] max-w-[180px] group hover:shadow-xl transition-all duration-200">
+    <div className="relative bg-white/95 backdrop-blur-sm rounded-full shadow-xl border-2 border-green-300 p-6 w-[160px] h-[160px] group hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center">
       {/* Status indicator */}
       <div 
         className="absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-white shadow-sm"

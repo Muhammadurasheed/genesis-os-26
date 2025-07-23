@@ -28,6 +28,7 @@ import { GenesisTriggerNode } from './nodes/GenesisTriggerNode';
 import { GenesisIntegrationNode } from './nodes/GenesisIntegrationNode';
 import { GenesisLogicNode } from './nodes/GenesisLogicNode';
 import { GenesisDataFlowEdge } from './edges/GenesisDataFlowEdge';
+import { IntelligentDataFlowEdge } from './edges/IntelligentDataFlowEdge';
 import { WorkflowNarrator } from './narrator/WorkflowNarrator';
 import { HolographicButton } from '../ui/HolographicButton';
 import { CanvasToolbar } from '../ui/CanvasToolbar';
@@ -49,6 +50,7 @@ const nodeTypes = {
 
 const edgeTypes = {
   dataFlow: GenesisDataFlowEdge as any,
+  intelligentDataFlow: IntelligentDataFlowEdge as any,
 };
 
 interface GenesisCanvasProps {
@@ -208,40 +210,94 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
     return nodes;
   };
 
-  const createIntelligentConnections = async (_blueprint: any, nodes: Node[]): Promise<Edge[]> => {
+  const createIntelligentConnections = async (blueprint: any, nodes: Node[]): Promise<Edge[]> => {
     const edges: Edge[] = [];
     
-    // Create logical connections based on workflow
-    for (let i = 0; i < nodes.length - 1; i++) {
-      const sourceNode = nodes[i];
-      const targetNode = nodes[i + 1];
-      
+    // Create intelligent branching connections based on workflow logic
+    const structure = blueprint?.suggested_structure;
+    
+    if (nodes.length === 0) return edges;
+
+    // Create main workflow path
+    const triggerNode = nodes.find(n => n.type === 'trigger');
+    const agentNodes = nodes.filter(n => n.type === 'agent');
+    const integrationNodes = nodes.filter(n => n.type === 'integration');
+
+    // Connect trigger to first agent
+    if (triggerNode && agentNodes.length > 0) {
       edges.push({
-        id: `edge-${i + 1}`,
-        source: sourceNode.id,
-        target: targetNode.id,
-        type: 'dataFlow',
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#6366f1',
-        },
+        id: `trigger-to-agent-1`,
+        source: triggerNode.id,
+        target: agentNodes[0].id,
+        type: 'intelligentDataFlow',
         data: {
-          dataType: inferDataType(sourceNode, targetNode),
-          flowRate: 'normal',
-          transformations: generateTransformations(sourceNode, targetNode),
-          realTimeMetrics: {
-            dataVolume: 1247,
-            errorRate: 0.02,
-            avgProcessingTime: 156
-          }
+          dataType: 'primary',
+          explanation: `When ${structure?.guild_purpose || 'workflow'} is triggered, it activates the primary AI agent to begin processing`,
+          connectionType: 'solid',
+          animated: true
         },
-        style: {
-          stroke: getConnectionColor(sourceNode.type, targetNode.type),
-          strokeWidth: 3,
-        },
+        style: { stroke: '#10b981', strokeWidth: 3 },
         animated: true
       });
     }
+
+    // Create intelligent agent-to-agent connections
+    for (let i = 0; i < agentNodes.length - 1; i++) {
+      const sourceAgent = agentNodes[i];
+      const targetAgent = agentNodes[i + 1];
+      
+      edges.push({
+        id: `agent-${i}-to-${i + 1}`,
+        source: sourceAgent.id,
+        target: targetAgent.id,
+        type: 'intelligentDataFlow',
+        data: {
+          dataType: 'secondary',
+          explanation: `${sourceAgent.data.label} processes data and hands off enriched context to ${targetAgent.data.label} for specialized handling`,
+          connectionType: i % 2 === 0 ? 'solid' : 'dashed',
+          animated: false
+        },
+        style: { stroke: '#6366f1', strokeWidth: 2 }
+      });
+    }
+
+    // Connect agents to integrations with feedback loops
+    agentNodes.forEach((agent, agentIndex) => {
+      integrationNodes.forEach((integration, integrationIndex) => {
+        if (agentIndex === integrationIndex || (agentIndex === 0 && integrationIndex === integrationNodes.length - 1)) {
+          edges.push({
+            id: `agent-${agentIndex}-to-integration-${integrationIndex}`,
+            source: agent.id,
+            target: integration.id,
+            type: 'intelligentDataFlow',
+            data: {
+              dataType: 'control',
+              explanation: `${agent.data.label} sends processed data to ${integration.data.label} for external system integration`,
+              connectionType: 'dotted',
+              animated: true
+            },
+            style: { stroke: '#f59e0b', strokeWidth: 2 }
+          });
+
+          // Add feedback connection
+          if (agentIndex < agentNodes.length - 1) {
+            edges.push({
+              id: `feedback-${integrationIndex}-to-agent-${agentIndex + 1}`,
+              source: integration.id,
+              target: agentNodes[agentIndex + 1].id,
+              type: 'intelligentDataFlow',
+              data: {
+                dataType: 'feedback',
+                explanation: `${integration.data.label} provides confirmation and results back to ${agentNodes[agentIndex + 1].data.label} for continued processing`,
+                connectionType: 'dashed',
+                animated: false
+              },
+              style: { stroke: '#8b5cf6', strokeWidth: 1.5 }
+            });
+          }
+        }
+      });
+    });
 
     return edges;
   };
@@ -299,27 +355,6 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
   };
 
 
-  const inferDataType = (sourceNode: Node, targetNode: Node): string => {
-    // AI-powered data type inference
-    if (sourceNode.type === 'trigger') return 'event';
-    if (targetNode.type === 'integration') return 'structured';
-    return 'mixed';
-  };
-
-  const generateTransformations = (_sourceNode: Node, _targetNode: Node): string[] => {
-    // AI-generated data transformations
-    return ['validate_input', 'normalize_format', 'enrich_data'];
-  };
-
-  const getConnectionColor = (sourceType?: string, _targetType?: string): string => {
-    const colorMap = {
-      trigger: '#10b981',
-      agent: '#6366f1',
-      integration: '#f59e0b',
-      logic: '#ef4444'
-    };
-    return colorMap[sourceType as keyof typeof colorMap] || '#6366f1';
-  };
 
   return (
     <div className={`genesis-canvas-container ${className}`}>
@@ -356,7 +391,7 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
           snapGrid={[20, 20]}
           className="genesis-flow"
           style={{ 
-            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)',
+            background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a3e 25%, #2d1b69 50%, #1a1a3e 75%, #0f0f23 100%)',
           }}
         >
           {/* Advanced Background */}

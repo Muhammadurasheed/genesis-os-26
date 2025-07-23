@@ -28,7 +28,7 @@ export const GenesisAgentNode: React.FC<any> = ({ data }) => {
   };
 
   return (
-    <div className="relative bg-white rounded-xl shadow-lg border border-gray-200 p-4 min-w-[160px] max-w-[180px] group hover:shadow-xl transition-all duration-200">
+    <div className="relative bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-300 p-4 min-w-[200px] max-w-[220px] group hover:shadow-2xl transition-all duration-300">
       <Handle 
         type="target" 
         position={Position.Left} 

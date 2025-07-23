@@ -36,7 +36,7 @@ export const GenesisIntegrationNode: React.FC<any> = ({ data }) => {
   };
 
   return (
-    <div className="relative bg-white rounded-xl shadow-lg border border-gray-200 p-4 min-w-[160px] max-w-[180px] group hover:shadow-xl transition-all duration-200">
+    <div className="relative bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border-2 border-blue-300 p-4 min-w-[180px] max-w-[200px] group hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
       <Handle 
         type="target" 
         position={Position.Left} 

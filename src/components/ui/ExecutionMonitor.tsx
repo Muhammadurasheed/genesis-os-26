@@ -66,9 +66,9 @@ export const ExecutionMonitor: React.FC<ExecutionMonitorProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`w-72 ${className}`}
+      className={`w-64 ${className}`}
     >
-      <GlassCard variant="medium" className="p-0">
+      <GlassCard variant="intense" className="p-0 bg-black/90 border-white/40">
         {/* Header */}
         <div 
           className="flex items-center justify-between p-4 border-b border-white/10 cursor-pointer"
