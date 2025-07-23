@@ -107,34 +107,41 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
     let yOffset = 0;
     const nodeSpacing = 250;
 
-    // Create trigger nodes
-    if (blueprint.trigger) {
-      nodes.push({
-        id: 'trigger-1',
-        type: 'trigger',
-        position: { x: 100, y: yOffset },
-        data: {
-          label: 'Smart Trigger',
-          triggerType: blueprint.trigger.type || 'webhook',
-          description: 'Initiates the workflow when conditions are met',
-          status: 'active',
-          brandLogo: '/api/assets/triggers/webhook.svg',
-          realTimeMetrics: {
-            successRate: 98.5,
-            avgLatency: 45,
-            triggerCount: 1247
-          },
-          aiSuggestions: [
-            'Consider adding rate limiting for high-volume scenarios',
-            'Add backup trigger for redundancy'
-          ]
-        }
-      });
-      yOffset += nodeSpacing;
+    // Get the actual structure from the blueprint
+    const structure = blueprint?.suggested_structure;
+    if (!structure) {
+      console.warn('No suggested_structure found in blueprint');
+      return nodes;
     }
 
-    // Create agent nodes
-    blueprint.agents?.forEach((agent: any, index: number) => {
+    console.log('🎯 Creating nodes from real blueprint data:', structure);
+
+    // Create trigger node
+    nodes.push({
+      id: 'trigger-1',
+      type: 'trigger',
+      position: { x: 100, y: yOffset },
+      data: {
+        label: `${structure.guild_name} Trigger`,
+        triggerType: 'manual',
+        description: `Initiates ${structure.guild_purpose}`,
+        status: 'active',
+        brandLogo: '/api/assets/triggers/webhook.svg',
+        realTimeMetrics: {
+          successRate: 98.5,
+          avgLatency: 45,
+          triggerCount: 1247
+        },
+        aiSuggestions: [
+          'Consider adding rate limiting for high-volume scenarios',
+          'Add backup trigger for redundancy'
+        ]
+      }
+    });
+    yOffset += nodeSpacing;
+
+    // Create agent nodes from real blueprint data
+    structure.agents?.forEach((agent: any, index: number) => {
       nodes.push({
         id: `agent-${index + 1}`,
         type: 'agent',
@@ -146,8 +153,8 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
           model: 'claude-3.5-sonnet',
           status: 'ready',
           brandLogo: '/api/assets/ai/anthropic.svg',
-          capabilities: agent.tools || [],
-          personality: agent.personality || 'Professional and efficient',
+          capabilities: agent.tools_needed || [],
+          personality: `Professional ${agent.role} specialist`,
           realTimeMetrics: {
             successRate: 96.8,
             avgLatency: 1200,
@@ -167,19 +174,18 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
       });
     });
 
-    // Create integration nodes
-    const integrations = extractIntegrations(blueprint);
-    integrations.forEach((integration: any, index: number) => {
+    // Create workflow nodes from real blueprint data
+    structure.workflows?.forEach((workflow: any, index: number) => {
       nodes.push({
-        id: `integration-${index + 1}`,
+        id: `workflow-${index + 1}`,
         type: 'integration',
         position: { x: 700, y: index * (nodeSpacing / 2) },
         data: {
-          label: integration.name,
-          service: integration.service,
-          description: integration.description,
+          label: workflow.name,
+          service: workflow.trigger_type,
+          description: workflow.description,
           status: 'connected',
-          brandLogo: `/api/assets/integrations/${integration.service.toLowerCase()}.svg`,
+          brandLogo: `/api/assets/integrations/${workflow.trigger_type.toLowerCase()}.svg`,
           apiHealth: {
             status: 'healthy',
             responseTime: 89,
@@ -187,9 +193,9 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
             rateLimit: { used: 245, limit: 1000 }
           },
           dataFlow: {
-            inputSchema: integration.inputSchema,
-            outputSchema: integration.outputSchema,
-            transformations: integration.transformations
+            inputSchema: { data: 'mixed' },
+            outputSchema: { result: 'processed' },
+            transformations: ['validate', 'process', 'output']
           },
           aiSuggestions: [
             'Implement retry logic for better reliability',
@@ -292,27 +298,6 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
     console.log('🚀 Starting workflow execution...');
   };
 
-  const extractIntegrations = (_blueprint: any) => {
-    // Extract integrations from blueprint
-    return [
-      {
-        name: 'Slack Notifications',
-        service: 'Slack',
-        description: 'Send notifications to team channels',
-        inputSchema: { message: 'string', channel: 'string' },
-        outputSchema: { messageId: 'string', timestamp: 'date' },
-        transformations: ['format_message', 'validate_channel']
-      },
-      {
-        name: 'Email Service',
-        service: 'Gmail',
-        description: 'Send automated emails',
-        inputSchema: { to: 'string', subject: 'string', body: 'string' },
-        outputSchema: { messageId: 'string', deliveryStatus: 'string' },
-        transformations: ['sanitize_content', 'apply_template']
-      }
-    ];
-  };
 
   const inferDataType = (sourceNode: Node, targetNode: Node): string => {
     // AI-powered data type inference
