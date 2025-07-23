@@ -356,20 +356,20 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
           snapGrid={[20, 20]}
           className="genesis-flow"
           style={{ 
-            background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%)',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)',
           }}
         >
           {/* Advanced Background */}
           <Background 
-            color="#6366f1" 
-            size={2} 
-            gap={20}
+            color="#cbd5e1" 
+            size={1} 
+            gap={25}
             className="genesis-background"
           />
           
           {/* Enhanced Controls */}
           <Controls 
-            className="genesis-controls"
+            className="genesis-controls !bg-white !border-gray-200 !shadow-lg"
             showZoom={true}
             showFitView={true}
             showInteractive={true}
@@ -377,7 +377,7 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
           
           {/* Intelligent MiniMap */}
           <MiniMap 
-            className="genesis-minimap"
+            className="genesis-minimap !bg-white !border-gray-200 !shadow-lg"
             nodeColor={(node) => {
               const colors = {
                 trigger: '#10b981',
@@ -387,7 +387,7 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
               };
               return colors[node.type as keyof typeof colors] || '#6366f1';
             }}
-            maskColor="rgba(0, 0, 0, 0.2)"
+            maskColor="rgba(255, 255, 255, 0.8)"
             pannable
             zoomable
           />

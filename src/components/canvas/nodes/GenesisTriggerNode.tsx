@@ -1,34 +1,62 @@
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Zap, Clock, Webhook } from 'lucide-react';
 
 export const GenesisTriggerNode: React.FC<any> = ({ data }) => {
   const getTriggerIcon = () => {
-    switch (data?.triggerType) {
-      case 'schedule': return <Clock className="w-6 h-6 text-green-400" />;
-      case 'webhook': return <Webhook className="w-6 h-6 text-blue-400" />;
-      default: return <Zap className="w-6 h-6 text-yellow-400" />;
+    const type = data?.triggerType || 'manual';
+    switch (type) {
+      case 'schedule': return '⏰';
+      case 'webhook': return '🔗';
+      case 'manual': return '👆';
+      case 'form': return '📝';
+      default: return '⚡';
     }
   };
 
+  const getStatusColor = () => {
+    if (data?.status === 'active') return '#10b981';
+    if (data?.status === 'triggered') return '#f59e0b';
+    return '#6b7280';
+  };
+
   return (
-    <div className="relative bg-gradient-to-br from-green-900/20 to-emerald-900/20 border border-green-500/30 rounded-lg p-4 min-w-[180px] backdrop-blur-sm">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="relative">
+    <div className="relative bg-white rounded-xl shadow-lg border border-gray-200 p-4 min-w-[160px] max-w-[180px] group hover:shadow-xl transition-all duration-200">
+      {/* Status indicator */}
+      <div 
+        className="absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-white shadow-sm"
+        style={{ backgroundColor: getStatusColor() }}
+      />
+
+      {/* Main content */}
+      <div className="text-center space-y-3">
+        {/* Large icon */}
+        <div className="w-12 h-12 mx-auto bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center text-2xl border border-green-200">
           {getTriggerIcon()}
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
         </div>
+
+        {/* Title */}
         <div>
-          <h3 className="text-white font-medium text-sm">{data?.label || 'Trigger'}</h3>
-          <p className="text-green-300 text-xs">{data?.triggerType || 'manual'}</p>
+          <h3 className="text-gray-800 font-semibold text-sm leading-tight">
+            {data?.label || "On 'Create User' form"}
+          </h3>
+          <p className="text-gray-500 text-xs mt-1">
+            submission
+          </p>
+        </div>
+
+        {/* Trigger info */}
+        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+          <div className="text-xs text-gray-600 text-center">
+            <span className="font-medium capitalize">{data?.triggerType || 'manual'}</span> trigger
+          </div>
         </div>
       </div>
 
-      <div className="text-xs text-green-200">
-        {data?.description || 'Workflow trigger point'}
-      </div>
-
-      <Handle type="source" position={Position.Right} className="w-3 h-3" />
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        className="w-3 h-3 bg-gray-400 border-2 border-white shadow-sm"
+      />
     </div>
   );
 };

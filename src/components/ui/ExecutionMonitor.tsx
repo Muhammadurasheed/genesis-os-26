@@ -27,7 +27,7 @@ export const ExecutionMonitor: React.FC<ExecutionMonitorProps> = ({
   edges,
   className = ''
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Mock execution data
   const mockMetrics = {
@@ -66,7 +66,7 @@ export const ExecutionMonitor: React.FC<ExecutionMonitorProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`w-80 ${className}`}
+      className={`w-72 ${className}`}
     >
       <GlassCard variant="medium" className="p-0">
         {/* Header */}

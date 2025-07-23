@@ -1,36 +1,84 @@
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Link, Globe, Database } from 'lucide-react';
 
 export const GenesisIntegrationNode: React.FC<any> = ({ data }) => {
   const getServiceIcon = () => {
-    switch (data?.service?.toLowerCase()) {
-      case 'slack': return <Globe className="w-6 h-6 text-orange-400" />;
-      case 'gmail': return <Database className="w-6 h-6 text-red-400" />;
-      default: return <Link className="w-6 h-6 text-blue-400" />;
-    }
+    const service = data?.service?.toLowerCase() || '';
+    if (service.includes('slack')) return '💬';
+    if (service.includes('slack')) return '💬';
+    if (service.includes('gmail') || service.includes('email')) return '📧';
+    if (service.includes('database') || service.includes('db')) return '🗄️';
+    if (service.includes('api')) return '🔌';
+    if (service.includes('webhook')) return '🔗';
+    if (service.includes('microsoft') || service.includes('entra')) return '🏢';
+    if (service.includes('jira')) return '📋';
+    return '🔌'; // Default API icon
+  };
+
+  const getStatusColor = () => {
+    if (data?.status === 'connected') return '#10b981';
+    if (data?.status === 'error') return '#ef4444';
+    return '#6b7280';
+  };
+
+  const getServiceName = () => {
+    const service = data?.service || '';
+    if (service.toLowerCase().includes('microsoft')) return 'Microsoft Entra ID';
+    if (service.toLowerCase().includes('jira')) return 'Jira Software';
+    return service || 'External Service';
+  };
+
+  const getActionText = () => {
+    const action = data?.action || '';
+    if (action.toLowerCase().includes('create')) return 'getAll user';
+    if (action.toLowerCase().includes('update')) return 'Update profile';
+    return action || 'API Call';
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-orange-900/20 to-yellow-900/20 border border-orange-500/30 rounded-lg p-4 min-w-[180px] backdrop-blur-sm">
-      <Handle type="target" position={Position.Left} className="w-3 h-3" />
+    <div className="relative bg-white rounded-xl shadow-lg border border-gray-200 p-4 min-w-[160px] max-w-[180px] group hover:shadow-xl transition-all duration-200">
+      <Handle 
+        type="target" 
+        position={Position.Left} 
+        className="w-3 h-3 bg-gray-400 border-2 border-white shadow-sm"
+      />
       
-      <div className="flex items-center gap-3 mb-3">
-        <div className="relative">
+      {/* Status indicator */}
+      <div 
+        className="absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-white shadow-sm"
+        style={{ backgroundColor: getStatusColor() }}
+      />
+
+      {/* Main content */}
+      <div className="text-center space-y-3">
+        {/* Large icon */}
+        <div className="w-12 h-12 mx-auto bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center text-2xl border border-blue-200">
           {getServiceIcon()}
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full" />
         </div>
+
+        {/* Title */}
         <div>
-          <h3 className="text-white font-medium text-sm">{data?.label || 'Integration'}</h3>
-          <p className="text-orange-300 text-xs">{data?.service || 'Service'}</p>
+          <h3 className="text-gray-800 font-semibold text-sm leading-tight">
+            {data?.label || getServiceName()}
+          </h3>
+          <p className="text-gray-500 text-xs mt-1">
+            {getActionText()}
+          </p>
+        </div>
+
+        {/* Service info */}
+        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+          <div className="text-xs text-gray-600 text-center">
+            <span className="font-medium">{getServiceName()}</span>
+          </div>
         </div>
       </div>
 
-      <div className="text-xs text-orange-200">
-        {data?.description || 'External service integration'}
-      </div>
-
-      <Handle type="source" position={Position.Right} className="w-3 h-3" />
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        className="w-3 h-3 bg-gray-400 border-2 border-white shadow-sm"
+      />
     </div>
   );
 };
