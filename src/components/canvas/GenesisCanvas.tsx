@@ -82,8 +82,8 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
       const generatedNodes = await createIntelligentNodes(blueprint);
       const generatedEdges = await createIntelligentConnections(blueprint, generatedNodes);
       
-      setNodes(generatedNodes);
-      setEdges(generatedEdges);
+      setNodes(generatedNodes as any);
+      setEdges(generatedEdges as any);
       
       // Auto-layout with AI optimization
       setTimeout(() => {
@@ -265,7 +265,7 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
         animated: true
       };
       
-      setEdges((eds) => addEdge(newEdge, eds));
+      (setEdges as any)((eds: any) => addEdge(newEdge, eds));
     },
     [setEdges]
   );
