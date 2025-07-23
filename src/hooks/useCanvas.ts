@@ -4,6 +4,7 @@ import { useCanvasStore } from '../stores/canvasStore';
 import { useWizardStore } from '../stores/wizardStore';
 import { canvasService } from '../services/canvasService';
 import { NodeData, CanvasEdge } from '../types/canvas';
+import { useToast } from '../components/ui/use-toast';
 
 /**
  * Hook for managing canvas operations
@@ -18,13 +19,19 @@ export function useCanvas() {
     workflowNodes,
     workflowEdges,
     setWorkflowNodes,
-    setWorkflowEdges
+    setWorkflowEdges,
+    isExecuting,
+    setIsExecuting,
+    updateExecutionMetrics
   } = useCanvasStore();
   
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>(workflowNodes as Node<NodeData>[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<CanvasEdge>(workflowEdges as CanvasEdge[]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [executionId, setExecutionId] = useState<string | null>(null);
+  const [nodeStatuses, setNodeStatuses] = useState<Record<string, string>>({});
+  const { toast } = useToast();
   
   // Load nodes and edges from blueprint
   useEffect(() => {
@@ -101,33 +108,200 @@ export function useCanvas() {
     console.log('Adding node of type:', type, 'at position:', position);
   }, [nodes, edges, addToHistory]);
   
-  // Save canvas
-  const saveCanvas = useCallback(() => {
-    addToHistory(nodes, edges);
-    console.log('Canvas saved with', nodes.length, 'nodes and', edges.length, 'edges');
-  }, [nodes, edges, addToHistory]);
   
-  // Execute workflow
+  // Execute workflow with real-time monitoring
   const executeWorkflow = useCallback(async () => {
-    if (!nodes.length) return;
+    if (!nodes.length) {
+      toast({
+        title: "No workflow to execute",
+        description: "Please add nodes to your canvas first",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    console.log("Executing workflow with", nodes.length, "nodes");
+    console.log("🚀 Executing workflow with", nodes.length, "nodes");
+    setIsExecuting(true);
+    setError(null);
     
     try {
       const result = await canvasService.executeWorkflow(
-        'flow-1',
+        `flow-${Date.now()}`,
         nodes,
         edges,
-        { userId: 'user-123' }
+        { 
+          userId: 'user-123',
+          timestamp: new Date().toISOString(),
+          blueprint: blueprint?.id 
+        }
       );
       
-      console.log('Workflow execution initiated:', result.executionId);
+      setExecutionId(result.executionId);
+      
+      // Initialize node statuses
+      const initialStatuses: Record<string, string> = {};
+      nodes.forEach(node => {
+        initialStatuses[node.id] = 'pending';
+      });
+      setNodeStatuses(initialStatuses);
+      
+      toast({
+        title: "Workflow execution started",
+        description: `Execution ID: ${result.executionId}`,
+      });
+      
+      // Start monitoring execution
+      monitorExecution(result.executionId);
+      
+      console.log('✅ Workflow execution initiated:', result.executionId);
       return result;
     } catch (err) {
-      console.error('Failed to execute workflow:', err);
+      console.error('❌ Failed to execute workflow:', err);
+      setError(`Execution failed: ${err}`);
+      setIsExecuting(false);
+      
+      toast({
+        title: "Execution failed",
+        description: "Failed to start workflow execution",
+        variant: "destructive"
+      });
+      
       throw err;
     }
-  }, [nodes, edges]);
+  }, [nodes, edges, blueprint, toast]);
+
+  // Monitor workflow execution in real-time
+  const monitorExecution = useCallback(async (execId: string) => {
+    const checkStatus = async () => {
+      try {
+        const status = await canvasService.getExecutionStatus(execId);
+        
+        if (status) {
+          // Update node statuses
+          const newStatuses: Record<string, string> = {};
+          status.nodes?.forEach((nodeExec: any) => {
+            newStatuses[nodeExec.id] = nodeExec.status;
+          });
+          setNodeStatuses(newStatuses);
+          
+          // Update execution metrics
+          updateExecutionMetrics({
+            totalNodes: nodes.length,
+            completedNodes: status.nodes?.filter((n: any) => n.status === 'completed').length || 0,
+            failedNodes: status.nodes?.filter((n: any) => n.status === 'failed').length || 0,
+            lastExecutionTime: new Date()
+          });
+          
+          if (status.status === 'completed') {
+            setIsExecuting(false);
+            toast({
+              title: "Workflow completed",
+              description: "All nodes executed successfully",
+            });
+          } else if (status.status === 'failed') {
+            setIsExecuting(false);
+            setError(`Execution failed: ${status.error}`);
+            toast({
+              title: "Workflow failed",
+              description: status.error || "Unknown error occurred",
+              variant: "destructive"
+            });
+          } else if (status.status === 'running') {
+            // Continue monitoring
+            setTimeout(checkStatus, 2000);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to get execution status:', err);
+        setIsExecuting(false);
+      }
+    };
+    
+    // Start monitoring
+    checkStatus();
+  }, [nodes.length, updateExecutionMetrics, toast]);
+
+  // Validate node configuration
+  const validateNode = useCallback(async (nodeId: string, config: Record<string, any>) => {
+    try {
+      const result = await canvasService.validateNodeConfig(nodeId, config);
+      return result;
+    } catch (err) {
+      console.error('Node validation failed:', err);
+      return { isValid: false, errors: ['Validation service unavailable'], warnings: [], suggestions: [] };
+    }
+  }, []);
+
+  // Auto-optimize canvas layout
+  const optimizeLayout = useCallback(async () => {
+    if (!nodes.length) return;
+    
+    try {
+      setIsLoading(true);
+      const result = await canvasService.optimizeLayout(nodes, edges);
+      
+      setNodes(result.nodes);
+      setEdges(result.edges);
+      addToHistory(result.nodes, result.edges);
+      
+      toast({
+        title: "Layout optimized",
+        description: "Canvas layout has been automatically optimized",
+      });
+    } catch (err) {
+      console.error('Layout optimization failed:', err);
+      toast({
+        title: "Optimization failed",
+        description: "Failed to optimize canvas layout",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [nodes, edges, setNodes, setEdges, addToHistory, toast]);
+
+  // Enhanced save canvas with versioning
+  const saveCanvas = useCallback(async () => {
+    try {
+      const canvasId = `canvas-${blueprint?.id || Date.now()}`;
+      const metadata = {
+        id: canvasId,
+        name: blueprint?.suggested_structure?.guild_name || 'Untitled Canvas',
+        description: blueprint?.suggested_structure?.guild_purpose || 'Canvas description',
+        version: '1.0.0',
+        created: new Date().toISOString(),
+        updated: new Date().toISOString(),
+        author: 'User',
+        tags: ['workflow', 'ai-generated'],
+        stats: {
+          totalNodes: nodes.length,
+          totalEdges: edges.length,
+          complexity: nodes.length > 10 ? 'high' : nodes.length > 5 ? 'medium' : 'low'
+        }
+      };
+      
+      const result = await canvasService.saveCanvas(canvasId, nodes, edges, metadata);
+      
+      if (result.success) {
+        addToHistory(nodes, edges);
+        toast({
+          title: "Canvas saved",
+          description: `Saved as version ${result.version}`,
+        });
+      }
+      
+      console.log('✅ Canvas saved:', result);
+      return result;
+    } catch (err) {
+      console.error('Failed to save canvas:', err);
+      toast({
+        title: "Save failed",
+        description: "Failed to save canvas",
+        variant: "destructive"
+      });
+      throw err;
+    }
+  }, [nodes, edges, blueprint, addToHistory, toast]);
   
   return {
     nodes,
@@ -142,6 +316,13 @@ export function useCanvas() {
     executeWorkflow,
     isLoading,
     error,
-    loadCanvasFromBlueprint
+    loadCanvasFromBlueprint,
+    // New enhanced features
+    isExecuting,
+    executionId,
+    nodeStatuses,
+    validateNode,
+    optimizeLayout,
+    monitorExecution
   };
 }

@@ -1,4 +1,4 @@
-import axios from 'axios';
+
 import { Blueprint } from '../types';
 import { Node, MarkerType } from '@xyflow/react';
 import { 
@@ -8,6 +8,7 @@ import {
   NodeData,
   CanvasEdge
 } from '../types/canvas';
+import { canvasEngine } from './canvas/canvasEngineService';
 
 // Icons are imported dynamically in React components,
 // here we just store their names as strings
@@ -34,40 +35,34 @@ import {
   Rocket
 } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
 
 /**
  * Service for managing canvas operations
  */
 export const canvasService = {
   /**
-   * Generate canvas nodes and edges from a blueprint
+   * Generate canvas nodes and edges from a blueprint using the new Canvas Engine
    */
   generateCanvasFromBlueprint: async (blueprint: Blueprint): Promise<{ nodes: Node<NodeData>[], edges: CanvasEdge[] }> => {
-    console.log('🎨 Generating canvas from blueprint:', blueprint.id);
-    
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    console.log('🎨 Canvas Service: Using Canvas Engine for blueprint generation');
     
     try {
-      // Try to use the orchestrator service if available
-      console.log('Attempting to generate canvas from blueprint via orchestrator:', API_BASE_URL);
-      try {
-        const response = await axios.post(`${API_BASE_URL}/generateCanvas`, { blueprint });
-        console.log('✅ Canvas generated successfully via orchestrator');
-        return response.data;
-      } catch (error) {
-        console.warn('⚠️ Orchestrator service unavailable:', error);
-        throw error;
-      }
+      const result = await canvasEngine.generateCanvasFromBlueprint(blueprint);
+      console.log('✅ Canvas generated successfully via Canvas Engine');
+      return {
+        nodes: result.nodes,
+        edges: result.edges
+      };
     } catch (error) {
-      console.warn('⚠️ Orchestrator service unavailable, falling back to client-side generation');
-      // Fall back to client-side generation if orchestrator is unavailable
+      console.error('❌ Canvas Engine failed, falling back to local generation:', error);
+      // Fall back to local generation if engine fails
       return generateCanvasLocally(blueprint);
     }
   },
   
   /**
-   * Execute a workflow based on canvas nodes and edges
+   * Execute a workflow using the Canvas Engine
    */
   executeWorkflow: async (
     flowId: string, 
@@ -76,37 +71,76 @@ export const canvasService = {
     context: Record<string, any> = {}
   ): Promise<{ executionId: string }> => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-      console.log('Attempting to execute workflow via orchestrator:', API_BASE_URL);
-      
-      const response = await axios.post(`${API_BASE_URL}/executeFlow`, {
-        flowId,
-        nodes,
-        edges,
-        context
-      });
-      
+      console.log('⚡ Canvas Service: Executing workflow via Canvas Engine');
+      const result = await canvasEngine.executeWorkflow(flowId, nodes, edges, context);
       return {
-        executionId: response.data.executionId
+        executionId: result.executionId
       };
     } catch (error) {
       console.error('Failed to execute workflow:', error);
       throw error;
     }
   },
-  
+
   /**
    * Get workflow execution status
    */
-  getExecutionStatus: async (executionId: string): Promise<any> => {
+  getExecutionStatus: async (executionId: string) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/execution/${executionId}`);
-      return response.data;
+      return await canvasEngine.getExecutionStatus(executionId);
     } catch (error) {
       console.error('Failed to get execution status:', error);
       throw error;
     }
-  }
+  },
+
+  /**
+   * Validate node configuration
+   */
+  validateNodeConfig: async (nodeId: string, config: Record<string, any>) => {
+    try {
+      return await canvasEngine.validateNodeConfig(nodeId, config);
+    } catch (error) {
+      console.error('Failed to validate node config:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Save canvas state
+   */
+  saveCanvas: async (canvasId: string, nodes: Node<NodeData>[], edges: CanvasEdge[], metadata?: any) => {
+    try {
+      return await canvasEngine.saveCanvas(canvasId, nodes, edges, metadata);
+    } catch (error) {
+      console.error('Failed to save canvas:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Load canvas state  
+   */
+  loadCanvas: async (canvasId: string, version?: string) => {
+    try {
+      return await canvasEngine.loadCanvas(canvasId, version);
+    } catch (error) {
+      console.error('Failed to load canvas:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Auto-optimize canvas layout
+   */
+  optimizeLayout: async (nodes: Node<NodeData>[], edges: CanvasEdge[]) => {
+    try {
+      return await canvasEngine.optimizeLayout(nodes, edges);
+    } catch (error) {
+      console.error('Failed to optimize layout:', error);
+      throw error;
+    }
+  },
 };
 
 /**
