@@ -5,7 +5,8 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { useWizardStore } from '../../../stores/wizardStore';
 import { useCanvasStore } from '../../../stores/canvasStore';
 import { useCollaborationStore } from '../../../stores/collaborationStore';
-import { CollaborativeCanvas } from '../../canvas/CollaborativeCanvas';
+import { CanvasWithCollaboration } from '../../canvas/CanvasWithCollaboration';
+import { canvasService } from '../../../services/canvasService';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/Card';
 import { Badge } from '../../ui/badge';
@@ -62,11 +63,16 @@ export const EnhancedCanvasStep: React.FC = () => {
     try {
       console.log('🎨 AI Canvas Generation: Processing blueprint...', blueprint.id);
       
-      // Enhanced canvas generation with AI-powered layout
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate AI processing
+      // Generate canvas using the canvas service
+      const { nodes: generatedNodes, edges: generatedEdges } = await canvasService.generateCanvasFromBlueprint(blueprint);
+      
+      // Update canvas store with generated nodes and edges
+      const canvasStore = useCanvasStore.getState();
+      canvasStore.setWorkflowNodes(generatedNodes);
+      canvasStore.setWorkflowEdges(generatedEdges);
       
       toast.success('AI Canvas Generated Successfully!', {
-        description: `Created intelligent workflow from your ${blueprint.suggested_structure.agents.length} agent blueprint`
+        description: `Created intelligent workflow with ${generatedNodes.length} nodes and ${generatedEdges.length} connections`
       });
       
       setCanvasGenerated(true);
@@ -339,7 +345,13 @@ export const EnhancedCanvasStep: React.FC = () => {
             style={{ height: '700px' }}
           >
             <ReactFlowProvider>
-              <CollaborativeCanvas />
+              <CanvasWithCollaboration
+                nodes={nodes as any}
+                edges={edges as any}
+                onSaveBlueprint={handleSaveBlueprint}
+                onRunSimulation={handleRunSimulation}
+                isLoading={isGenerating}
+              />
             </ReactFlowProvider>
           </motion.div>
 

@@ -467,6 +467,15 @@ agentRouter.get('/video/health', (req, res) => {
 // Wizard API endpoints
 const wizardRouter = express.Router();
 
+// Health endpoint for wizard services
+wizardRouter.get('/health', (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    service: "wizard-service",
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Generate blueprint endpoint for wizard
 wizardRouter.post('/generate-blueprint', async (req, res) => {
   try {
