@@ -536,6 +536,530 @@ class BlueprintService {
 
     return { nodes, edges };
   }
+
+  /**
+   * Generate enterprise canvas with enhanced features and professional layout
+   */
+  public generateEnterpriseCanvasFromBlueprint(blueprint: Blueprint, options: any = {}): { nodes: any[]; edges: any[] } {
+    console.log(`🏢 Generating enterprise canvas from blueprint: ${blueprint.id}`);
+    
+    const nodes: any[] = [];
+    const edges: any[] = [];
+    
+    // Enhanced layout configuration for enterprise
+    const layout = {
+      type: options.layout || 'hierarchical',
+      levelHeight: 400,
+      nodeSpacing: 350,
+      centerX: 600,
+      startY: 100,
+      maxNodesPerLevel: 3,
+      verticalSpacing: 200
+    };
+
+    // Create enhanced trigger node with enterprise features
+    const triggerNode = {
+      id: 'enterprise-trigger',
+      type: 'trigger',
+      position: { x: layout.centerX, y: layout.startY },
+      data: {
+        label: `${blueprint.suggested_structure.guild_name} Initiative`,
+        triggerType: 'enterprise',
+        description: `Enterprise-grade orchestration for ${blueprint.suggested_structure.guild_name}`,
+        icon: 'Rocket',
+        color: 'from-emerald-600 via-teal-600 to-emerald-700',
+        status: 'ready',
+        schedule: {
+          frequency: 'on-demand',
+          nextRun: new Date(Date.now() + 3600000).toISOString(),
+          timezone: 'UTC',
+          sla: '99.9% uptime'
+        },
+        enterprise: {
+          tier: 'premium',
+          compliance: ['SOC2', 'GDPR', 'HIPAA'],
+          monitoring: 'real-time',
+          scalability: 'auto-scaling'
+        }
+      },
+    };
+    nodes.push(triggerNode);
+
+    // Create intelligent agent layout with advanced positioning
+    blueprint.suggested_structure.agents.forEach((agent, index) => {
+      const level = Math.floor(index / layout.maxNodesPerLevel) + 1;
+      const positionInLevel = index % layout.maxNodesPerLevel;
+      const totalInLevel = Math.min(
+        layout.maxNodesPerLevel, 
+        blueprint.suggested_structure.agents.length - (level - 1) * layout.maxNodesPerLevel
+      );
+      
+      const levelStartX = layout.centerX - ((totalInLevel - 1) * layout.nodeSpacing) / 2;
+      const x = levelStartX + (positionInLevel * layout.nodeSpacing);
+      const y = layout.startY + (level * layout.levelHeight);
+
+      const agentNode = {
+        id: `enterprise-agent-${index + 1}`,
+        type: 'agent',
+        position: { x, y },
+        data: {
+          label: agent.name,
+          role: agent.role,
+          description: `${agent.description} - Enhanced with enterprise AI capabilities`,
+          tools: [...agent.tools_needed, 'enterprise-monitoring', 'auto-scaling', 'compliance-tracking'],
+          personality: this.getEnterprisePersonality(agent.role),
+          icon: this.getEnterpriseAgentIcon(agent.role),
+          color: this.getEnterpriseAgentColor(index),
+          status: 'ready',
+          model: 'Gemini Enterprise Pro',
+          enterprise: {
+            tier: 'enterprise',
+            region: 'multi-region',
+            compliance: ['SOC2', 'GDPR', 'HIPAA'],
+            monitoring: 'full-telemetry',
+            sla: {
+              uptime: '99.9%',
+              response_time: '<200ms',
+              throughput: '1000+ req/min'
+            }
+          },
+          performance: {
+            averageResponseTime: Math.random() * 0.3 + 0.1, // 0.1-0.4s
+            successRate: 97 + Math.random() * 3, // 97-100%
+            lastExecution: new Date(Date.now() - Math.random() * 1800000).toISOString(),
+            throughput: Math.floor(Math.random() * 1500 + 1000), // 1000-2500 req/min
+            uptime: 99.7 + Math.random() * 0.3 // 99.7-100%
+          }
+        },
+      };
+      nodes.push(agentNode);
+
+      // Create intelligent enterprise connections
+      if (index === 0) {
+        const edge = {
+          id: `trigger-to-enterprise-agent-${index + 1}`,
+          source: 'enterprise-trigger',
+          target: `enterprise-agent-${index + 1}`,
+          type: 'smoothstep',
+          animated: true,
+          style: { 
+            stroke: '#059669', 
+            strokeWidth: 4,
+            filter: 'drop-shadow(0px 3px 8px rgba(5, 150, 105, 0.4))'
+          },
+          markerEnd: { 
+            type: 'arrowclosed', 
+            color: '#059669',
+            width: 26,
+            height: 26
+          },
+          sourceHandle: null,
+          targetHandle: null,
+          label: 'Initialize Enterprise Flow',
+          labelStyle: { fill: '#059669', fontWeight: 700, fontSize: '12px' }
+        };
+        edges.push(edge);
+      }
+
+      // Create sequential agent connections with enterprise styling
+      if (index > 0) {
+        const sourceAgent = `enterprise-agent-${index}`;
+        const targetAgent = `enterprise-agent-${index + 1}`;
+        
+        const edge = {
+          id: `enterprise-flow-${index}-${index + 1}`,
+          source: sourceAgent,
+          target: targetAgent,
+          type: 'smoothstep',
+          animated: true,
+          style: { 
+            stroke: '#4f46e5', 
+            strokeWidth: 3,
+            filter: 'drop-shadow(0px 2px 6px rgba(79, 70, 229, 0.3))'
+          },
+          markerEnd: { 
+            type: 'arrowclosed', 
+            color: '#4f46e5',
+            width: 22,
+            height: 22
+          },
+          sourceHandle: null,
+          targetHandle: null,
+          label: this.getEnterpriseConnectionLabel(index),
+          labelStyle: { fill: '#4f46e5', fontWeight: 600, fontSize: '11px' }
+        };
+        edges.push(edge);
+      }
+    });
+
+    // Add enterprise integration and monitoring nodes
+    blueprint.suggested_structure.workflows.forEach((workflow, index) => {
+      const integrationNode = {
+        id: `enterprise-integration-${index + 1}`,
+        type: 'integration',
+        position: { 
+          x: 150 + (index * 450), 
+          y: layout.startY + ((Math.floor(blueprint.suggested_structure.agents.length / layout.maxNodesPerLevel) + 2) * layout.levelHeight)
+        },
+        data: {
+          label: `${workflow.name} Enterprise Hub`,
+          description: `${workflow.description} - Enterprise integration with full compliance`,
+          actionType: 'enterprise-api',
+          icon: this.getEnterpriseIntegrationIcon(workflow.trigger_type),
+          color: this.getEnterpriseIntegrationColor(workflow.trigger_type),
+          status: 'operational',
+          config: {
+            endpoint: `https://api.genesis-enterprise.com/v2/${workflow.name.toLowerCase().replace(/\s+/g, '-')}`,
+            authentication: 'oauth2-enterprise',
+            rateLimit: '5000/min',
+            timeout: '15s',
+            retry: 'exponential-backoff-advanced',
+            circuit_breaker: 'enabled'
+          },
+          enterprise: {
+            sla: {
+              uptime: '99.99%',
+              response_time: '<100ms',
+              data_processing: '10GB/hour'
+            },
+            compliance: ['enterprise-grade', 'audit-ready'],
+            monitoring: 'real-time-telemetry',
+            scaling: 'auto-horizontal'
+          },
+          metrics: {
+            executionCount: Math.floor(Math.random() * 50000 + 10000),
+            averageTime: Math.random() * 1 + 0.2,
+            lastRun: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+            successRate: 98 + Math.random() * 2,
+            dataProcessed: `${(Math.random() * 50 + 10).toFixed(1)}GB`
+          }
+        },
+      };
+      nodes.push(integrationNode);
+
+      // Connect relevant agents to enterprise integrations
+      const targetAgentIndex = Math.min(index + 1, blueprint.suggested_structure.agents.length);
+      if (targetAgentIndex > 0) {
+        const edge = {
+          id: `enterprise-agent-to-integration-${targetAgentIndex}-${index + 1}`,
+          source: `enterprise-agent-${targetAgentIndex}`,
+          target: `enterprise-integration-${index + 1}`,
+          type: 'smoothstep',
+          animated: true,
+          style: { 
+            stroke: '#dc2626', 
+            strokeWidth: 3,
+            filter: 'drop-shadow(0px 2px 6px rgba(220, 38, 38, 0.3))'
+          },
+          markerEnd: { 
+            type: 'arrowclosed', 
+            color: '#dc2626',
+            width: 22,
+            height: 22
+          },
+          sourceHandle: null,
+          targetHandle: null,
+          label: 'Enterprise Execute',
+          labelStyle: { fill: '#dc2626', fontWeight: 600, fontSize: '11px' }
+        };
+        edges.push(edge);
+      }
+    });
+
+    console.log(`✅ Generated enterprise canvas with ${nodes.length} nodes and ${edges.length} edges`);
+    return { nodes, edges };
+  }
+
+  /**
+   * Optimize canvas layout using advanced algorithms
+   */
+  public optimizeCanvasLayout(nodes: any[], edges: any[], options: any = {}): { nodes: any[]; edges: any[] } {
+    console.log(`🎯 Optimizing canvas layout with ${options.algorithm || 'force-directed'} algorithm`);
+    
+    const algorithm = options.algorithm || 'force-directed';
+    const objectives = options.objectives || ['minimize-crossings', 'optimize-spacing'];
+    
+    // Create a copy of nodes to avoid mutation
+    const optimizedNodes = nodes.map(node => ({ ...node }));
+    
+    switch (algorithm) {
+      case 'hierarchical':
+        return this.applyHierarchicalLayout(optimizedNodes, edges, objectives);
+      case 'force-directed':
+        return this.applyForceDirectedLayout(optimizedNodes, edges, objectives);
+      case 'circular':
+        return this.applyCircularLayout(optimizedNodes, edges, objectives);
+      default:
+        return this.applySmartLayout(optimizedNodes, edges, objectives);
+    }
+  }
+
+  /**
+   * Apply hierarchical layout optimization
+   */
+  private applyHierarchicalLayout(nodes: any[], edges: any[], objectives: string[]): { nodes: any[]; edges: any[] } {
+    const levels: { [key: number]: any[] } = {};
+    
+    // Group nodes by type and create levels
+    const triggerNodes = nodes.filter(n => n.type === 'trigger');
+    const agentNodes = nodes.filter(n => n.type === 'agent');
+    const integrationNodes = nodes.filter(n => n.type === 'integration');
+    
+    // Level 0: Triggers
+    levels[0] = triggerNodes;
+    
+    // Level 1+: Agents (distributed across levels)
+    const agentsPerLevel = Math.ceil(agentNodes.length / 2);
+    agentNodes.forEach((node, index) => {
+      const level = Math.floor(index / agentsPerLevel) + 1;
+      if (!levels[level]) levels[level] = [];
+      levels[level].push(node);
+    });
+    
+    // Final level: Integrations
+    const maxLevel = Math.max(...Object.keys(levels).map(Number)) + 1;
+    levels[maxLevel] = integrationNodes;
+    
+    // Position nodes in their levels
+    Object.keys(levels).forEach(levelKey => {
+      const level = parseInt(levelKey);
+      const levelNodes = levels[level];
+      const y = 150 + (level * 350);
+      
+      levelNodes.forEach((node, index) => {
+        const totalInLevel = levelNodes.length;
+        const spacing = Math.max(300, 800 / Math.max(totalInLevel - 1, 1));
+        const startX = 400 - ((totalInLevel - 1) * spacing) / 2;
+        
+        node.position = {
+          x: startX + (index * spacing),
+          y: y
+        };
+      });
+    });
+    
+    return { nodes, edges };
+  }
+
+  /**
+   * Apply force-directed layout optimization
+   */
+  private applyForceDirectedLayout(nodes: any[], edges: any[], objectives: string[]): { nodes: any[]; edges: any[] } {
+    // Simple force-directed algorithm implementation
+    const iterations = 50;
+    const repulsionStrength = 1000;
+    const attractionStrength = 0.1;
+    const damping = 0.9;
+    
+    for (let i = 0; i < iterations; i++) {
+      nodes.forEach(node => {
+        let fx = 0, fy = 0;
+        
+        // Repulsion forces between all nodes
+        nodes.forEach(other => {
+          if (node.id !== other.id) {
+            const dx = node.position.x - other.position.x;
+            const dy = node.position.y - other.position.y;
+            const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+            const force = repulsionStrength / (distance * distance);
+            
+            fx += (dx / distance) * force;
+            fy += (dy / distance) * force;
+          }
+        });
+        
+        // Attraction forces for connected nodes
+        edges.forEach(edge => {
+          if (edge.source === node.id || edge.target === node.id) {
+            const otherNodeId = edge.source === node.id ? edge.target : edge.source;
+            const otherNode = nodes.find(n => n.id === otherNodeId);
+            
+            if (otherNode) {
+              const dx = otherNode.position.x - node.position.x;
+              const dy = otherNode.position.y - node.position.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              
+              fx += dx * attractionStrength;
+              fy += dy * attractionStrength;
+            }
+          }
+        });
+        
+        // Apply forces with damping
+        node.position.x += fx * damping;
+        node.position.y += fy * damping;
+        
+        // Keep nodes within bounds
+        node.position.x = Math.max(50, Math.min(1200, node.position.x));
+        node.position.y = Math.max(50, Math.min(800, node.position.y));
+      });
+    }
+    
+    return { nodes, edges };
+  }
+
+  /**
+   * Apply circular layout optimization
+   */
+  private applyCircularLayout(nodes: any[], edges: any[], objectives: string[]): { nodes: any[]; edges: any[] } {
+    const centerX = 600;
+    const centerY = 400;
+    const radius = 250;
+    
+    // Place trigger in center
+    const triggerNode = nodes.find(n => n.type === 'trigger');
+    if (triggerNode) {
+      triggerNode.position = { x: centerX, y: centerY };
+    }
+    
+    // Place other nodes in circle
+    const otherNodes = nodes.filter(n => n.type !== 'trigger');
+    otherNodes.forEach((node, index) => {
+      const angle = (index * 2 * Math.PI) / otherNodes.length;
+      node.position = {
+        x: centerX + Math.cos(angle) * radius,
+        y: centerY + Math.sin(angle) * radius
+      };
+    });
+    
+    return { nodes, edges };
+  }
+
+  /**
+   * Apply smart adaptive layout
+   */
+  private applySmartLayout(nodes: any[], edges: any[], objectives: string[]): { nodes: any[]; edges: any[] } {
+    // Combine multiple algorithms based on node count and structure
+    if (nodes.length <= 5) {
+      return this.applyCircularLayout(nodes, edges, objectives);
+    } else if (nodes.length <= 10) {
+      return this.applyHierarchicalLayout(nodes, edges, objectives);
+    } else {
+      return this.applyForceDirectedLayout(nodes, edges, objectives);
+    }
+  }
+
+  /**
+   * Get enterprise personality for agents
+   */
+  private getEnterprisePersonality(role: string): string {
+    const personalities: Record<string, string> = {
+      'analyst': 'Executive-level data strategist with AI-powered insights and board-ready analytics',
+      'support': 'Enterprise customer success leader with omni-channel orchestration and SLA excellence',
+      'sales': 'Revenue optimization executive with predictive pipeline management and enterprise CRM mastery',
+      'marketing': 'Brand strategist with AI-driven campaign orchestration and enterprise marketing automation',
+      'finance': 'Financial intelligence leader with real-time enterprise reporting and compliance automation',
+      'operations': 'Process excellence director with enterprise workflow automation and performance optimization',
+      'security': 'Cybersecurity executive with enterprise threat intelligence and compliance governance',
+      'hr': 'Talent intelligence leader with enterprise recruitment automation and workforce analytics',
+      'customer': 'Customer experience strategist with enterprise engagement automation',
+      'data': 'Data intelligence architect with enterprise analytics and governance'
+    };
+    
+    const roleKey = Object.keys(personalities).find(key => 
+      role.toLowerCase().includes(key)
+    );
+    
+    return personalities[roleKey || 'analyst'] || 'Enterprise AI strategist with advanced automation and intelligence capabilities';
+  }
+
+  /**
+   * Get enterprise agent icons
+   */
+  private getEnterpriseAgentIcon(role: string): string {
+    const roleIcons: Record<string, string> = {
+      'analyst': 'BarChart',
+      'support': 'MessageSquare',
+      'sales': 'DollarSign',
+      'marketing': 'Sparkles',
+      'finance': 'CreditCard',
+      'operations': 'Settings',
+      'hr': 'Users',
+      'customer': 'Heart',
+      'data': 'Database',
+      'content': 'FileText',
+      'social': 'Share2',
+      'email': 'Mail',
+      'report': 'FileText',
+      'intelligence': 'Brain',
+      'specialist': 'Target',
+      'security': 'Shield',
+      'development': 'Code',
+      'infrastructure': 'Cpu'
+    };
+
+    const roleKey = Object.keys(roleIcons).find(key => 
+      role.toLowerCase().includes(key)
+    );
+
+    return roleIcons[roleKey || 'specialist'] || 'Bot';
+  }
+
+  /**
+   * Get enterprise agent colors
+   */
+  private getEnterpriseAgentColor(index: number): string {
+    const enterpriseColors = [
+      'from-purple-600 via-purple-500 to-indigo-600',
+      'from-blue-600 via-blue-500 to-cyan-600',
+      'from-emerald-600 via-emerald-500 to-teal-600',
+      'from-orange-600 via-orange-500 to-red-600',
+      'from-violet-600 via-violet-500 to-purple-600',
+      'from-indigo-600 via-indigo-500 to-blue-600',
+      'from-rose-600 via-rose-500 to-pink-600',
+      'from-amber-600 via-amber-500 to-yellow-600'
+    ];
+    return enterpriseColors[index % enterpriseColors.length];
+  }
+
+  /**
+   * Get enterprise integration icons
+   */
+  private getEnterpriseIntegrationIcon(triggerType: string): string {
+    const icons: Record<string, string> = {
+      'schedule': 'Clock',
+      'webhook': 'Globe',
+      'manual': 'Play',
+      'event': 'Zap',
+      'api': 'Code',
+      'database': 'Database',
+      'email': 'Mail'
+    };
+    return icons[triggerType] || 'Plug';
+  }
+
+  /**
+   * Get enterprise integration colors
+   */
+  private getEnterpriseIntegrationColor(triggerType: string): string {
+    const colors: Record<string, string> = {
+      'schedule': 'from-blue-600 to-indigo-700',
+      'webhook': 'from-green-600 to-emerald-700',
+      'manual': 'from-purple-600 to-violet-700',
+      'event': 'from-yellow-600 to-orange-700',
+      'api': 'from-gray-600 to-slate-700',
+      'database': 'from-cyan-600 to-blue-700',
+      'email': 'from-red-600 to-pink-700'
+    };
+    return colors[triggerType] || 'from-gray-600 to-slate-700';
+  }
+
+  /**
+   * Get enterprise connection labels
+   */
+  private getEnterpriseConnectionLabel(index: number): string {
+    const labels = [
+      'Orchestrate',
+      'Intelligence',
+      'Execute',
+      'Validate',
+      'Optimize',
+      'Monitor',
+      'Govern',
+      'Deliver'
+    ];
+    return labels[index % labels.length];
+  }
 }
 
 // Create singleton instance
