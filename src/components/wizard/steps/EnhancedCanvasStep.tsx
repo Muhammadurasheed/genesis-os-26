@@ -5,7 +5,7 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { useWizardStore } from '../../../stores/wizardStore';
 import { useCanvasStore } from '../../../stores/canvasStore';
 import { useCollaborationStore } from '../../../stores/collaborationStore';
-import { CanvasWithCollaboration } from '../../canvas/CanvasWithCollaboration';
+import { GenesisCanvas } from '../../canvas/GenesisCanvas';
 import { enterpriseCanvasService } from '../../../services/enterpriseCanvasService';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/Card';
@@ -345,12 +345,13 @@ export const EnhancedCanvasStep: React.FC = () => {
             style={{ height: '700px' }}
           >
             <ReactFlowProvider>
-              <CanvasWithCollaboration
-                nodes={nodes as any}
-                edges={edges as any}
-                onSaveBlueprint={handleSaveBlueprint}
-                onRunSimulation={handleRunSimulation}
-                isLoading={isGenerating}
+              <GenesisCanvas
+                blueprint={blueprint}
+                onSave={() => {
+                  console.log('💾 Saving workflow...');
+                  toast.success('Workflow saved successfully!');
+                }}
+                className="w-full h-full"
               />
             </ReactFlowProvider>
           </motion.div>

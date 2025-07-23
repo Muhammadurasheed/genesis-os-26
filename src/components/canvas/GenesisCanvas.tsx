@@ -29,8 +29,13 @@ import { GenesisIntegrationNode } from './nodes/GenesisIntegrationNode';
 import { GenesisLogicNode } from './nodes/GenesisLogicNode';
 import { GenesisDataFlowEdge } from './edges/GenesisDataFlowEdge';
 import { WorkflowNarrator } from './narrator/WorkflowNarrator';
-
 import { HolographicButton } from '../ui/HolographicButton';
+import { CanvasToolbar } from '../ui/CanvasToolbar';
+import { CollaborationPanel } from '../ui/CollaborationPanel';
+import { PropertyPanel } from '../ui/PropertyPanel';
+import { ExecutionMonitor } from '../ui/ExecutionMonitor';
+import { AIAssistant } from '../ui/AIAssistant';
+import { useRealtimeCollaboration } from '../../hooks/useRealtimeCollaboration';
 
 import '@xyflow/react/dist/style.css';
 import './GenesisCanvas.css';
@@ -65,7 +70,9 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [showNarrator, setShowNarrator] = useState(false);
   const [canvasMode, setCanvasMode] = useState<'design' | 'execute' | 'debug'>('design');
+  const [executionState] = useState<any>({ status: 'ready', nodes: [], metrics: {} });
 
+  const { collaborators, cursorPositions } = useRealtimeCollaboration();
   const { fitView } = useReactFlow();
 
   // Initialize canvas with blueprint
@@ -332,29 +339,20 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
   return (
     <div className={`genesis-canvas-container ${className}`}>
       {/* Advanced Toolbar */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-4 bg-black/50 backdrop-blur-lg rounded-lg px-4 py-2">
-        <HolographicButton
-          variant={canvasMode === 'design' ? 'primary' : 'outline'}
-          size="sm"
-          onClick={() => handleCanvasModeChange('design')}
-        >
-          Design
-        </HolographicButton>
-        <HolographicButton
-          variant={canvasMode === 'execute' ? 'primary' : 'outline'}
-          size="sm"
-          onClick={() => handleCanvasModeChange('execute')}
-        >
-          Execute
-        </HolographicButton>
-        <HolographicButton
-          variant="outline"
-          size="sm"
-          onClick={onSave}
-        >
-          Save
-        </HolographicButton>
-      </div>
+      <CanvasToolbar
+        mode={canvasMode}
+        onModeChange={handleCanvasModeChange}
+        onSave={onSave}
+        onExecute={() => startWorkflowExecution()}
+        executionMetrics={executionState.metrics}
+      />
+
+      {/* Collaboration Panel */}
+      <CollaborationPanel
+        collaborators={collaborators}
+        cursorPositions={cursorPositions}
+        className="absolute top-4 right-4 z-10"
+      />
 
       {/* Main Canvas */}
       <div className="canvas-main-area" ref={reactFlowWrapper}>
@@ -465,26 +463,35 @@ export const GenesisCanvas: React.FC<GenesisCanvasProps> = ({
         </ReactFlow>
       </div>
 
-      {/* Property Panel - Placeholder */}
-      {selectedNode && (
-        <div className="absolute left-4 top-20 z-10 bg-black/50 backdrop-blur-lg rounded-lg p-4">
-          <h3 className="text-white text-sm font-medium mb-2">Node Properties</h3>
-          <p className="text-white/70 text-xs">Selected: {selectedNode}</p>
-        </div>
-      )}
+      {/* Property Panel */}
+      <PropertyPanel
+        selectedNode={selectedNode ? (nodes as any).find((n: any) => n.id === selectedNode) : null}
+        onNodeUpdate={(nodeId: string, updates: any) => {
+          (setNodes as any)((nds: any) => nds.map((node: any) => 
+            node.id === nodeId ? { ...node, ...updates } : node
+          ));
+        }}
+        className="absolute left-4 top-20 z-10"
+      />
+
+      {/* Execution Monitor */}
+      <ExecutionMonitor
+        executionState={executionState}
+        nodes={nodes}
+        edges={edges}
+        className="absolute right-4 bottom-20 z-10"
+      />
 
       {/* AI Assistant Modal */}
       <AnimatePresence>
         {showAIAssistant && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-black/80 backdrop-blur-lg rounded-lg p-6 max-w-md">
-              <h3 className="text-white text-lg font-medium mb-4">AI Assistant</h3>
-              <p className="text-white/70 mb-4">AI-powered workflow analysis coming soon...</p>
-              <HolographicButton onClick={() => setShowAIAssistant(false)}>
-                Close
-              </HolographicButton>
-            </div>
-          </div>
+          <AIAssistant
+            workflow={{ nodes, edges }}
+            onSuggestion={(suggestion) => {
+              console.log('🤖 AI Suggestion:', suggestion);
+            }}
+            onClose={() => setShowAIAssistant(false)}
+          />
         )}
       </AnimatePresence>
 
