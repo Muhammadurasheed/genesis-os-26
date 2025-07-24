@@ -260,8 +260,8 @@ export function useCanvas() {
     try {
       const newEdges = await canvasService.autoConnect(nodes);
       if (newEdges.length > 0) {
-        setEdges(prev => [...prev, ...newEdges]);
-        addToHistory(nodes, [...edges, ...newEdges]);
+        setEdges(prev => [...prev, ...newEdges as CanvasEdge[]]);
+        addToHistory(nodes, [...edges, ...newEdges as CanvasEdge[]]);
         toast({
           title: "Smart connections added",
           description: `${newEdges.length} intelligent connections created`,
