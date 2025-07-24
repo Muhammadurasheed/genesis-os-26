@@ -540,6 +540,22 @@ export class ProductionToolExecutionEngine {
   ): Promise<ExecutionResult> {
     const executionId = this.generateExecutionId();
     
+    // Check cache for identical executions (for idempotent operations)
+    const cacheKey = this.generateCacheKey(tool, action, params, context);
+    const cachedResult = this.executionCache.get(cacheKey);
+    
+    if (cachedResult && action.cacheable !== false) {
+      console.log(`[ProductionToolExecutionEngine] Cache hit for ${tool.id}:${action.id}`);
+      return {
+        ...cachedResult,
+        metadata: {
+          ...cachedResult.metadata,
+          execution_id: executionId,
+          cache_hit: true
+        }
+      };
+    }
+    
     // Check rate limits first
     const rateLimitKey = `${tool.id}:${context.user_id}`;
     const rateLimitResult = await this.rateLimiter.checkLimit(rateLimitKey);
@@ -607,7 +623,14 @@ export class ProductionToolExecutionEngine {
     await this.queueProcessor.enqueue(execution, context.priority);
 
     // Execute with comprehensive retry logic
-    return await this.executeWithComprehensiveRetry(tool, action, params, context, execution, retryPolicy);
+    const result = await this.executeWithComprehensiveRetry(tool, action, params, context, execution, retryPolicy);
+    
+    // Cache successful results if cacheable
+    if (result.success && action.cacheable !== false) {
+      this.storeCacheResult(cacheKey, result);
+    }
+    
+    return result;
   }
 
   private async executeWithComprehensiveRetry(
@@ -1140,6 +1163,29 @@ export class ProductionToolExecutionEngine {
 
   async setBudget(toolId: string, dailyBudget: number, monthlyBudget: number, alertEmails: string[] = []): Promise<void> {
     await this.costTracker.setBudget(toolId, dailyBudget, monthlyBudget, alertEmails);
+  }
+
+  private generateCacheKey(tool: Tool, action: ToolAction, params: any, context: ExecutionContext): string {
+    const normalizedParams = JSON.stringify(params, Object.keys(params).sort());
+    return `${tool.id}:${action.id}:${context.user_id}:${Buffer.from(normalizedParams).toString('base64').slice(0, 16)}`;
+  }
+
+  private storeCacheResult(cacheKey: string, result: ExecutionResult): void {
+    // Cache for 5 minutes for successful executions
+    if (result.success) {
+      this.executionCache.set(cacheKey, {
+        ...result,
+        metadata: {
+          ...result.metadata,
+          cached_at: new Date().toISOString()
+        }
+      });
+
+      // Clean up cache after 5 minutes
+      setTimeout(() => {
+        this.executionCache.delete(cacheKey);
+      }, 5 * 60 * 1000);
+    }
   }
 }
 

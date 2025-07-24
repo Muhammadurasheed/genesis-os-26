@@ -39,6 +39,7 @@ export interface ToolAction {
   parameters?: ActionParameter[];
   rate_limit_override?: RateLimit;
   cost_override?: number;
+  cacheable?: boolean;
 }
 
 export interface ActionExample {
@@ -238,12 +239,14 @@ export interface ExecutionResult {
   data?: any;
   error?: ErrorDetails;
   metadata: {
-    execution_id: string;
-    duration_ms: number;
-    cost_incurred: number;
-    retry_count: number;
-    rate_limit_remaining?: number;
-    quota_remaining?: number;
+  execution_id: string;
+  duration_ms: number;
+  cost_incurred: number;
+  retry_count: number;
+  rate_limit_remaining?: number;
+  quota_remaining?: number;
+  cache_hit?: boolean;
+  cached_at?: string;
   };
 }
 
