@@ -95,6 +95,53 @@ export interface WorkflowEdge {
   data?: Record<string, any>;
 }
 
+// Master Blueprint: Enhanced Types for Phase 1.2 Intent Capture
+export interface BusinessIntent {
+  id: string;
+  user_id: string;
+  raw_description: string;
+  extracted_goals: string[];
+  identified_processes: Array<{
+    name: string;
+    description: string;
+    inputs: string[];
+    outputs: string[];
+    frequency: 'real-time' | 'hourly' | 'daily' | 'weekly' | 'monthly';
+    complexity: 'simple' | 'moderate' | 'complex';
+  }>;
+  suggested_agents: Array<{
+    name: string;
+    role: string;
+    description: string;
+    tools_needed: string[];
+  }>;
+  complexity_score: number;
+  estimated_cost: number;
+  status: 'draft' | 'refined' | 'approved';
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface ConversationMessage {
+  id: string;
+  type: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  metadata?: {
+    suggestions?: string[];
+    clarification_needed?: boolean;
+    confidence_score?: number;
+  };
+}
+
+export interface ConversationState {
+  phase: 'gathering' | 'clarifying' | 'confirming' | 'completed';
+  extracted_info?: BusinessIntent;
+  pending_questions: string[];
+  user_responses: Record<string, string>;
+  messages: ConversationMessage[];
+}
+
 export interface Blueprint {
   id: string;
   user_input: string;
@@ -114,8 +161,11 @@ export interface Blueprint {
       trigger_type: string;
     }>;
   };
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'draft' | 'refined' | 'approved' | 'pending' | 'rejected';
   created_at: string;
+  updated_at?: string;
+  conversation_state?: ConversationState;
+  refinement_count?: number;
 }
 
 export interface SimulationResult {
