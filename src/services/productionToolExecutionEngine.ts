@@ -303,6 +303,10 @@ class ProductionQueueProcessor {
     this.initializeQueueProcessor();
   }
 
+  get isRunning(): boolean {
+    return this._isRunning;
+  }
+
   private async initializeQueueProcessor(): Promise<void> {
     console.log('[ProductionQueueProcessor] Initializing queue processor...');
     
@@ -312,7 +316,7 @@ class ProductionQueueProcessor {
     // Start worker processes
     this.startWorkers();
     
-    this.isRunning = true;
+    this._isRunning = true;
     console.log(`[ProductionQueueProcessor] Started with ${this.concurrency} workers`);
   }
 
@@ -415,7 +419,7 @@ class ProductionQueueProcessor {
     return `${toolId}_${priority}`;
   }
 
-  private findInsertPosition(_queue: ToolExecution[], _execution: ToolExecution, _priority: string): number {
+  private findInsertPosition(queue: ToolExecution[], _execution: ToolExecution, _priority: string): number {
     // For same priority, maintain FIFO order
     return queue.length;
   }
@@ -506,7 +510,7 @@ export class ProductionToolExecutionEngine {
   private rateLimiter: DistributedRateLimiter;
   private costTracker: ProductionCostTracker;
   private queueProcessor: ProductionQueueProcessor;
-  private _executionCache: Map<string, ExecutionResult> = new Map();
+  private executionCache: Map<string, ExecutionResult> = new Map();
   private metrics: Map<string, any> = new Map();
 
   constructor() {
