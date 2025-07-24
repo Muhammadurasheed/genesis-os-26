@@ -414,7 +414,7 @@ const WebhookTriggerBuilder: React.FC<{
 const EmailTriggerBuilder: React.FC<{
   onSave: (config: TriggerConfig) => void;
   onCancel: () => void;
-}> = ({ onSave, onCancel }) => (
+}> = ({ onCancel }) => (
   <GlassCard variant="medium" className="p-6">
     <h3 className="text-xl font-semibold text-white mb-4">Email Trigger Configuration</h3>
     <p className="text-gray-400 mb-4">Email trigger configuration coming soon...</p>
@@ -429,7 +429,7 @@ const EmailTriggerBuilder: React.FC<{
 const FileWatchTriggerBuilder: React.FC<{
   onSave: (config: TriggerConfig) => void;
   onCancel: () => void;
-}> = ({ onSave, onCancel }) => (
+}> = ({ onCancel }) => (
   <GlassCard variant="medium" className="p-6">
     <h3 className="text-xl font-semibold text-white mb-4">File Watch Configuration</h3>
     <p className="text-gray-400 mb-4">File watch trigger configuration coming soon...</p>
@@ -444,7 +444,7 @@ const FileWatchTriggerBuilder: React.FC<{
 const DatabaseTriggerBuilder: React.FC<{
   onSave: (config: TriggerConfig) => void;
   onCancel: () => void;
-}> = ({ onSave, onCancel }) => (
+}> = ({ onCancel }) => (
   <GlassCard variant="medium" className="p-6">
     <h3 className="text-xl font-semibold text-white mb-4">Database Trigger Configuration</h3>
     <p className="text-gray-400 mb-4">Database trigger configuration coming soon...</p>
