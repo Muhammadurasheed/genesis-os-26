@@ -19,9 +19,7 @@ import {
   Maximize2,
   Bug,
   Server,
-  Database,
-  Network,
-  Users
+  Database
 } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { GlassCard } from '../ui/GlassCard';
@@ -33,16 +31,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Switch } from '../ui/switch';
 import { Progress } from '../ui/progress';
 import { ScrollArea } from '../ui/scroll-area';
-import { Separator } from '../ui/separator';
-import { toast } from '../ui/use-toast';
 import {
   DebugPanel,
-  ExecutionStep,
-  VariableState,
-  APICallLog,
-  ErrorEvent,
-  PerformanceMetric,
-  CostAnalysis,
   DebugFilterConfig
 } from '../../types/simulation';
 

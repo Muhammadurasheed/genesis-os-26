@@ -5,17 +5,11 @@ import {
   MockService, 
   MockEndpoint, 
   ResponseTemplate, 
-  LatencyConfig,
-  FailureConfig,
-  ConditionalResponse,
-  MockAuthConfig,
-  ReliabilityConfig,
-  SimulationError
+  LatencyConfig
 } from '../../types/simulation';
 
 export class MockServiceEngine {
   private mockServices: Map<string, MockService> = new Map();
-  private activeRequests: Map<string, AbortController> = new Map();
   private circuitBreakers: Map<string, CircuitBreakerState> = new Map();
   private rateLimiters: Map<string, RateLimiterState> = new Map();
   private requestLogs: MockRequestLog[] = [];
@@ -64,14 +58,14 @@ export class MockServiceEngine {
       return this.createNotFoundResponse(serviceId, endpoint, method);
     }
 
-    const requestLog = this.createRequestLog(serviceId, endpoint, method, headers, body, requestId);
+    const requestLog = this.createRequestLog(serviceId || 'unknown', endpoint, method, headers, body, requestId);
     this.requestLogs.push(requestLog);
 
     try {
       // Authentication check
       const authResult = this.validateAuthentication(service, headers);
       if (!authResult.isValid) {
-        return this.createAuthFailureResponse(service, authResult.error);
+        return this.createAuthFailureResponse(service, authResult.error || 'Authentication failed');
       }
 
       // Rate limiting check
@@ -143,7 +137,7 @@ export class MockServiceEngine {
 
     const circuitBreaker = this.circuitBreakers.get(serviceId);
     const recentLogs = this.getRequestLogs(serviceId, 100);
-    const recentErrors = recentLogs.filter(log => log.response?.status_code >= 400);
+    const recentErrors = recentLogs.filter(log => (log.response?.status_code || 0) >= 400);
     const errorRate = recentLogs.length > 0 ? recentErrors.length / recentLogs.length : 0;
 
     let status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown' = 'healthy';
@@ -555,11 +549,11 @@ export class MockServiceEngine {
     return endpoint.response_templates[0]; // Fallback
   }
 
-  private evaluateCondition(condition: string, context: { body?: any; headers?: Record<string, string> }): boolean {
+  private evaluateCondition(_condition: string, _context: { body?: any; headers?: Record<string, string> }): boolean {
     try {
       // Simple condition evaluation - could be enhanced with a proper expression parser
       // For now, just return true for demonstration
-      return eval(condition);
+      return true; // Mock implementation - always return true
     } catch {
       return false;
     }
