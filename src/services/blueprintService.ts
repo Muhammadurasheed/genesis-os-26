@@ -51,13 +51,14 @@ export const blueprintService = {
    */
   analyzeIntent: async (userInput: string): Promise<IntentAnalysisResult> => {
     try {
-      console.log('🧠 Master Blueprint: Analyzing business intent...');
+      console.log('🧠 Master Blueprint: Analyzing business intent with Gemini...');
       
-      // For now, use our enhanced fallback until backend implements this
-      return blueprintService.createFallbackIntentAnalysis(userInput);
+      // Use Gemini for intelligent intent analysis
+      const analysis = await apiMethods.analyzeBusinessIntent(userInput);
+      return analysis;
     } catch (error) {
-      console.error('Intent analysis failed:', error);
-      // Fallback analysis
+      console.error('Intent analysis failed, using fallback:', error);
+      // Enhanced fallback analysis
       return blueprintService.createFallbackIntentAnalysis(userInput);
     }
   },
@@ -67,23 +68,24 @@ export const blueprintService = {
    */
   askClarificationQuestions: async (intent: IntentAnalysisResult, userResponses: Record<string, string>): Promise<string[]> => {
     try {
-      console.log('🤔 Master Blueprint: Generating clarification questions...');
+      console.log('🤔 Master Blueprint: Generating intelligent clarification questions with Gemini...');
+      
+      // Use Gemini to generate contextual questions
+      const questions = await apiMethods.generateClarificationQuestions(intent, userResponses);
+      return questions;
+    } catch (error) {
+      console.error('Clarification generation failed, using fallback:', error);
       
       const remainingQuestions = intent.clarification_questions.filter(
         question => !Object.keys(userResponses).some(response => question.toLowerCase().includes(response.toLowerCase()))
       );
 
-      // Generate follow-up questions based on responses
       if (Object.keys(userResponses).length > 0) {
-        // For now, generate intelligent follow-ups locally
         const followUpQuestions = blueprintService.generateIntelligentFollowUps(intent, userResponses);
         return followUpQuestions.slice(0, 2);
       }
 
-      return remainingQuestions.slice(0, 3); // Start with top 3 questions
-    } catch (error) {
-      console.error('Clarification generation failed:', error);
-      return intent.clarification_questions.slice(0, 2);
+      return remainingQuestions.slice(0, 3);
     }
   },
 
@@ -92,12 +94,13 @@ export const blueprintService = {
    */
   refineBlueprint: async (originalIntent: IntentAnalysisResult, userResponses: Record<string, string>): Promise<Blueprint> => {
     try {
-      console.log('🔄 Master Blueprint: Refining blueprint with user clarifications...');
+      console.log('🔄 Master Blueprint: Refining blueprint with Gemini and user clarifications...');
       
-      // For now, generate enhanced blueprint locally
-      return blueprintService.createEnhancedBlueprint(originalIntent, userResponses);
+      // Use Gemini to generate refined blueprint based on conversation
+      const refinedBlueprint = await apiMethods.refineBlueprint(originalIntent, userResponses);
+      return refinedBlueprint;
     } catch (error) {
-      console.error('Blueprint refinement failed:', error);
+      console.error('Blueprint refinement failed, using enhanced fallback:', error);
       // Generate enhanced blueprint with available data
       return blueprintService.createEnhancedBlueprint(originalIntent, userResponses);
     }

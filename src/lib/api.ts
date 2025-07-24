@@ -179,6 +179,124 @@ const mockData = {
 
 // Enhanced API methods with Phase 3 intelligence
 export const apiMethods = {
+  // Master Blueprint Phase 1.2: Intent Analysis with Gemini
+  analyzeBusinessIntent: async (userInput: string): Promise<any> => {
+    if (!hasRealBackend && isDevelopment) {
+      console.log('🧠 Phase 1.2: Development mode - Creating mock intent analysis');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Enhanced intent analysis based on user input keywords
+
+      return {
+        extracted_goals: ['Automate processes', 'Improve efficiency', 'Scale operations'],
+        identified_processes: [
+          { name: 'Customer Communication', description: 'Handle customer inquiries', inputs: ['customer_messages'], outputs: ['responses'], frequency: 'real-time', complexity: 'simple' },
+          { name: 'Data Analysis', description: 'Analyze business metrics', inputs: ['business_data'], outputs: ['insights'], frequency: 'daily', complexity: 'moderate' }
+        ],
+        suggested_agents: [
+          { name: 'Customer Success Agent', role: 'Support Specialist', description: 'Handles customer communications', tools_needed: ['Email API', 'CRM', 'Chat'] },
+          { name: 'Analytics Agent', role: 'Data Analyst', description: 'Provides business insights', tools_needed: ['Database', 'Analytics API', 'Reporting'] }
+        ],
+        clarification_questions: [
+          'What is your primary business focus?',
+          'How many customers do you serve daily?',
+          'What tools do you currently use?'
+        ],
+        complexity_score: 6.5,
+        estimated_cost: 150,
+        confidence_score: 0.85
+      };
+    }
+
+    try {
+      console.log('🧠 Master Blueprint: Analyzing business intent with Gemini...');
+      const response = await api.post('/wizard/analyze-intent', {
+        user_input: userInput,
+        model: 'gemini-1.5-pro'
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Intent analysis API failed:', error);
+      throw error;
+    }
+  },
+
+  // Master Blueprint: Contextual Clarification Questions
+  generateClarificationQuestions: async (intent: any, userResponses: Record<string, string>): Promise<string[]> => {
+    if (!hasRealBackend && isDevelopment) {
+      console.log('🤔 Phase 1.2: Development mode - Generating mock clarification questions');
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const baseQuestions = [
+        'What is your primary business goal?',
+        'How many team members will use this system?',
+        'What is your budget range for this solution?',
+        'Do you need integration with existing tools?'
+      ];
+
+      // Filter out questions already answered
+      const answeredKeys = Object.keys(userResponses);
+      const remainingQuestions = baseQuestions.filter((_, index) => !answeredKeys.includes(`question_${index}`));
+      
+      return remainingQuestions.slice(0, 2);
+    }
+
+    try {
+      console.log('🤔 Master Blueprint: Generating intelligent clarification questions...');
+      const response = await api.post('/wizard/clarification-questions', {
+        intent_analysis: intent,
+        user_responses: userResponses,
+        model: 'gemini-1.5-pro'
+      });
+      return response.data.questions || [];
+    } catch (error: any) {
+      console.error('Clarification questions API failed:', error);
+      throw error;
+    }
+  },
+
+  // Master Blueprint: Refined Blueprint Generation
+  refineBlueprint: async (intent: any, userResponses: Record<string, string>): Promise<any> => {
+    if (!hasRealBackend && isDevelopment) {
+      console.log('🔄 Phase 1.2: Development mode - Creating refined mock blueprint');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const guildName = Object.values(userResponses).join(' ').includes('finance') ? 'Financial Operations Guild' : 'Business Automation Guild';
+      
+      return {
+        id: `refined-blueprint-${Date.now()}`,
+        user_input: Object.values(userResponses).join(' '),
+        interpretation: `Based on your clarifications, I've designed an enhanced system with ${intent.suggested_agents.length} specialized AI agents to achieve your business objectives.`,
+        suggested_structure: {
+          guild_name: guildName,
+          guild_purpose: `Advanced AI-powered system designed to ${intent.extracted_goals.join(' and ')} based on your specific requirements.`,
+          agents: intent.suggested_agents,
+          workflows: intent.identified_processes.map((process: any) => ({
+            name: process.name,
+            description: process.description,
+            trigger_type: process.frequency === 'real-time' ? 'webhook' : 'schedule'
+          }))
+        },
+        status: 'refined',
+        created_at: new Date().toISOString(),
+        refinement_count: 1
+      };
+    }
+
+    try {
+      console.log('🔄 Master Blueprint: Refining blueprint with Gemini...');
+      const response = await api.post('/wizard/refine-blueprint', {
+        intent_analysis: intent,
+        user_responses: userResponses,
+        model: 'gemini-1.5-pro'
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Blueprint refinement API failed:', error);
+      throw error;
+    }
+  },
+
   // Health check with enhanced metrics
   healthCheck: async () => {
     if (!hasRealBackend && isDevelopment) {

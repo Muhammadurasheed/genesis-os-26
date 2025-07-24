@@ -39,10 +39,11 @@ export const EnhancedBlueprintStep: React.FC = () => {
 
   // Initialize conversation when component mounts
   useEffect(() => {
-    if (user_input && !analysisResult) {
+    if (user_input && !analysisResult && !blueprint) {
+      console.log('🧠 Master Blueprint: Starting conversation-based blueprint generation...');
       initializeConversation();
     }
-  }, [user_input]);
+  }, [user_input, blueprint]);
 
   const initializeConversation = async () => {
     try {

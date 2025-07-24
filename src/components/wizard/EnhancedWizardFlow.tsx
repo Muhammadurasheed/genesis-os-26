@@ -4,7 +4,7 @@ import { useWizardStore } from '../../stores/wizardStore';
 import { MagicalBackground } from '../ui/MagicalBackground';
 import { WelcomeStep } from './steps/WelcomeStep';
 import { IntentStep } from './steps/IntentStep';
-import { BlueprintStep } from './steps/BlueprintStep';
+import { EditableBlueprintStep } from './steps/EditableBlueprintStep';
 import { CanvasGenerationStep } from './steps/CanvasGenerationStep';
 import { EnhancedCanvasStep } from './steps/EnhancedCanvasStep';
 import { CredentialsStep } from './steps/CredentialsStep';
@@ -14,7 +14,7 @@ import { DeploymentStep } from './steps/DeploymentStep';
 const stepComponents = {
   welcome: WelcomeStep,
   intent: IntentStep,
-  blueprint: BlueprintStep,
+  blueprint: EditableBlueprintStep,
   'canvas-generation': CanvasGenerationStep,
   canvas: EnhancedCanvasStep,
   credentials: CredentialsStep,

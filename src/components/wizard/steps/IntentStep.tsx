@@ -7,7 +7,7 @@ import { HolographicButton } from '../../ui/HolographicButton';
 import { QuantumLoader } from '../../ui/QuantumLoader';
 
 export const IntentStep: React.FC = () => {
-  const { user_input, setUserInput, generateBlueprint, errors, isLoading, clearErrors } = useWizardStore();
+  const { user_input, setUserInput, nextStep, errors, isLoading, clearErrors } = useWizardStore();
   const [localInput, setLocalInput] = useState(user_input);
   const [selectedExample, setSelectedExample] = useState<number | null>(null);
   const [charCount, setCharCount] = useState(0);
@@ -54,7 +54,8 @@ export const IntentStep: React.FC = () => {
     
     clearErrors();
     setUserInput(localInput);
-    await generateBlueprint();
+    // Don't generate blueprint yet - go to clarification step first
+    nextStep('blueprint');
   };
 
   const handleExampleClick = (example: any, index: number) => {
