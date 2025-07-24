@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 
-export interface Agent {
+// Legacy Agent interface for backward compatibility
+export interface LegacyAgent {
   id: string;
   name: string;
   description?: string;
@@ -61,8 +62,8 @@ export interface Deployment {
 }
 
 class DatabaseService {
-  // Agent CRUD operations
-  async createAgent(agentData: Omit<Agent, 'id' | 'created_at' | 'updated_at'>): Promise<Agent> {
+  // Legacy Agent CRUD operations (for backward compatibility)
+  async createAgent(agentData: Omit<LegacyAgent, 'id' | 'created_at' | 'updated_at'>): Promise<LegacyAgent> {
     const { data, error } = await supabase
       .from('agents')
       .insert({
@@ -77,7 +78,7 @@ class DatabaseService {
     return data;
   }
 
-  async getAgents(userId?: string): Promise<Agent[]> {
+  async getAgents(userId?: string): Promise<LegacyAgent[]> {
     let query = supabase
       .from('agents')
       .select('*')
@@ -92,7 +93,7 @@ class DatabaseService {
     return data || [];
   }
 
-  async getAgent(id: string): Promise<Agent | null> {
+  async getAgent(id: string): Promise<LegacyAgent | null> {
     const { data, error } = await supabase
       .from('agents')
       .select('*')
@@ -106,7 +107,7 @@ class DatabaseService {
     return data;
   }
 
-  async updateAgent(id: string, updates: Partial<Agent>): Promise<Agent> {
+  async updateAgent(id: string, updates: Partial<LegacyAgent>): Promise<LegacyAgent> {
     const { data, error } = await supabase
       .from('agents')
       .update({
