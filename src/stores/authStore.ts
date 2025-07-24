@@ -1,6 +1,5 @@
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
 
 interface User {
@@ -28,9 +27,7 @@ interface AuthState {
   clearEmailConfirmationState: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
+export const useAuthStore = create<AuthState>()((set, get) => ({
       user: null,
       isLoading: false,
       loading: false,
@@ -261,13 +258,4 @@ export const useAuthStore = create<AuthState>()(
       clearEmailConfirmationState: () => {
         set({ emailConfirmationRequired: false, rateLimitRemaining: 0 });
       },
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
-    }
-  )
-);
+    }));
