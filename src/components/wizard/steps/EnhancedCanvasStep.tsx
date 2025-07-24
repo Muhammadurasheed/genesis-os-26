@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useWizardStore } from '../../../stores/wizardStore';
 import { useCanvasStore } from '../../../stores/canvasStore';
 import { useCollaborationStore } from '../../../stores/collaborationStore';
-import { LovableCanvasLayout } from '../../canvas/LovableCanvasLayout';
+import { AdvancedGenesisCanvas } from '../../canvas/AdvancedGenesisCanvas';
 import { enterpriseCanvasService } from '../../../services/enterpriseCanvasService';
 import { Brain } from 'lucide-react';
 import { toast } from 'sonner';
@@ -140,8 +140,8 @@ export const EnhancedCanvasStep: React.FC = () => {
     );
   }
 
-  return (
-    <LovableCanvasLayout
+    return (
+    <AdvancedGenesisCanvas
       blueprint={blueprint}
       onSave={handleSaveBlueprint}
       onExecute={handleRunSimulation}
