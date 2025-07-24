@@ -16,15 +16,12 @@ import dagre from 'dagre';
  */
 export class AdvancedGenesisCanvasEngine {
   private dagreGraph: dagre.graphlib.Graph;
-  private nodeTypeStyles: Record<string, NodeStyle>;
-  private edgeTypeStyles: Record<string, EdgeStyle>;
-  private layoutAlgorithms: Record<string, LayoutAlgorithm>;
+  private nodeTypeStyles: Record<string, NodeStyle> = {};
 
   constructor() {
     this.dagreGraph = new dagre.graphlib.Graph();
     this.dagreGraph.setDefaultEdgeLabel(() => ({}));
     this.initializeStyleSystem();
-    this.initializeLayoutAlgorithms();
   }
 
   /**
@@ -147,7 +144,7 @@ export class AdvancedGenesisCanvasEngine {
         label: `🚀 ${blueprint.suggested_structure.guild_name}`,
         description: `Genesis point for ${blueprint.suggested_structure.guild_purpose}`,
         triggerType: 'manual',
-        icon: style.icon,
+        icon: undefined,
         color: style.gradient,
         status: 'ready',
         config: {
@@ -207,7 +204,7 @@ export class AdvancedGenesisCanvasEngine {
         role: 'coordinator',
         tools: ['workflow-orchestration', 'error-handling', 'performance-monitoring'],
         personality: 'Strategic, analytical, and coordination-focused with real-time monitoring capabilities',
-        icon: this.nodeTypeStyles.coordinator.icon,
+        icon: undefined,
         color: this.nodeTypeStyles.coordinator.gradient,
         status: 'ready',
         performance: {
@@ -245,7 +242,7 @@ export class AdvancedGenesisCanvasEngine {
         role: agent.role,
         tools: agent.tools_needed || [],
         personality: this.generateAdvancedPersonality(agent.role),
-        icon: style.icon,
+        icon: undefined,
         color: style.gradient,
         status: 'ready',
         performance: {
@@ -279,7 +276,7 @@ export class AdvancedGenesisCanvasEngine {
           label: `⚙️ ${workflow.name}`,
           description: workflow.description,
           actionType: this.mapTriggerToActionType(workflow.trigger_type),
-          icon: style.icon,
+          icon: undefined,
           color: style.gradient,
           status: 'pending',
           config: {
@@ -305,7 +302,7 @@ export class AdvancedGenesisCanvasEngine {
             powerLevel: Math.floor(analysis.complexity / 3) + 2
           }
         }
-      };
+      } as Node<ActionNodeData>;
     });
   }
 
@@ -325,7 +322,7 @@ export class AdvancedGenesisCanvasEngine {
           description: 'Intelligently routes workflow based on conditions',
           conditionType: 'switch',
           condition: 'workflow.priority === "high" || workflow.errorRate > 0.05',
-          icon: this.nodeTypeStyles.condition.icon,
+          icon: undefined,
           color: this.nodeTypeStyles.condition.gradient,
           status: 'ready',
           metadata: {
@@ -375,8 +372,8 @@ export class AdvancedGenesisCanvasEngine {
     // Add nodes to dagre
     nodes.forEach(node => {
       this.dagreGraph.setNode(node.id, { 
-        width: this.getNodeWidth(node.type),
-        height: this.getNodeHeight(node.type)
+        width: this.getNodeWidth(node.type as string),
+        height: this.getNodeHeight(node.type as string)
       });
     });
 
@@ -585,7 +582,7 @@ export class AdvancedGenesisCanvasEngine {
   private createGenesisEdge(
     sourceId: string,
     targetId: string,
-    flowType: string,
+    _flowType: string,
     analysis: BlueprintAnalysis
   ): CanvasEdge {
     return {
@@ -622,7 +619,7 @@ export class AdvancedGenesisCanvasEngine {
   private createIntelligentEdge(
     sourceId: string,
     targetId: string,
-    flowType: string,
+    _flowType: string,
     analysis: BlueprintAnalysis,
     index: number
   ): CanvasEdge {
@@ -660,8 +657,8 @@ export class AdvancedGenesisCanvasEngine {
   private createActionEdge(
     sourceId: string,
     targetId: string,
-    flowType: string,
-    analysis: BlueprintAnalysis
+    _flowType: string,
+    _analysis: BlueprintAnalysis
   ): CanvasEdge {
     return {
       id: `action-${sourceId}-${targetId}`,
@@ -693,8 +690,8 @@ export class AdvancedGenesisCanvasEngine {
   private createConditionEdge(
     sourceId: string,
     targetId: string,
-    flowType: string,
-    analysis: BlueprintAnalysis
+    _flowType: string,
+    _analysis: BlueprintAnalysis
   ): CanvasEdge {
     return {
       id: `condition-${sourceId}-${targetId}`,
@@ -725,8 +722,8 @@ export class AdvancedGenesisCanvasEngine {
   private createConditionalActionEdge(
     sourceId: string,
     targetId: string,
-    flowType: string,
-    analysis: BlueprintAnalysis
+    _flowType: string,
+    _analysis: BlueprintAnalysis
   ): CanvasEdge {
     return {
       id: `conditional-${sourceId}-${targetId}`,
@@ -762,7 +759,7 @@ export class AdvancedGenesisCanvasEngine {
     return nodes.map(node => ({
       ...node,
       style: {
-        ...this.getNodeVisualStyle(node.type, analysis),
+        ...this.getNodeVisualStyle(node.type as string, analysis),
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
       },
       className: `genesis-node genesis-node-${node.type} power-level-${analysis.complexity}`
@@ -803,52 +800,6 @@ export class AdvancedGenesisCanvasEngine {
         border: '2px solid rgba(139, 92, 246, 0.5)'
       }
     };
-
-    this.edgeTypeStyles = {
-      primary: {
-        color: '#10b981',
-        width: 4,
-        animation: 'flow',
-        effect: 'glow'
-      },
-      secondary: {
-        color: '#8b5cf6',
-        width: 3,
-        animation: 'pulse',
-        effect: 'none'
-      },
-      execution: {
-        color: '#f59e0b',
-        width: 2,
-        animation: 'dash',
-        effect: 'none'
-      }
-    };
-  }
-
-  private initializeLayoutAlgorithms(): void {
-    this.layoutAlgorithms = {
-      hierarchical: {
-        name: 'Hierarchical',
-        description: 'Top-down flow with clear hierarchy',
-        bestFor: 'Linear workflows with clear dependencies'
-      },
-      'force-directed': {
-        name: 'Force-Directed',
-        description: 'Organic positioning based on relationships',
-        bestFor: 'Complex interconnected workflows'
-      },
-      circular: {
-        name: 'Circular',
-        description: 'Balanced circular arrangement',
-        bestFor: 'Cyclic or feedback-heavy workflows'
-      },
-      hybrid: {
-        name: 'Intelligent Hybrid',
-        description: 'Combines multiple algorithms intelligently',
-        bestFor: 'Most workflow types'
-      }
-    };
   }
 
   // Calculation and utility methods
@@ -863,11 +814,11 @@ export class AdvancedGenesisCanvasEngine {
     return 'hybrid';
   }
 
-  private analyzeInteractionPatterns(structure: any): string[] {
+  private analyzeInteractionPatterns(_structure: any): string[] {
     return ['sequential', 'parallel', 'conditional']; // Simplified for now
   }
 
-  private calculateAgentPosition(index: number, analysis: BlueprintAnalysis): { x: number; y: number } {
+  private calculateAgentPosition(index: number, _analysis: BlueprintAnalysis): { x: number; y: number } {
     const agentsPerRow = 3;
     const nodeWidth = 350;
     const nodeHeight = 300;
@@ -883,14 +834,14 @@ export class AdvancedGenesisCanvasEngine {
     };
   }
 
-  private calculateWorkflowPosition(index: number, total: number): { x: number; y: number } {
+  private calculateWorkflowPosition(index: number, _total: number): { x: number; y: number } {
     return {
       x: 200 + index * 400,
       y: 700
     };
   }
 
-  private getAgentStyle(role: string, index: number): { icon: string; gradient: string } {
+  private getAgentStyle(_role: string, index: number): { icon: string; gradient: string } {
     const gradients = [
       'from-purple-500 to-pink-500',
       'from-blue-500 to-cyan-500',
@@ -1028,19 +979,6 @@ interface NodeStyle {
   border: string;
 }
 
-interface EdgeStyle {
-  color: string;
-  width: number;
-  animation: string;
-  effect: string;
-}
-
-interface LayoutAlgorithm {
-  name: string;
-  description: string;
-  bestFor: string;
-}
-
 interface BlueprintAnalysis {
   complexity: number;
   recommendedLayout: string;
@@ -1067,28 +1005,6 @@ interface CanvasGenerationResult {
     performance: any;
     animations: any;
   };
-}
-
-interface WorkflowExecution {
-  executionId: string;
-  status: string;
-  startTime: Date;
-  nodes: any[];
-}
-
-interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-  suggestions: string[];
-}
-
-interface CanvasMetadata {
-  generatedAt: string;
-  algorithm: string;
-  complexity: number;
-  performance: any;
-  animations: any;
 }
 
 // Export the engine instance

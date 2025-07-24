@@ -95,16 +95,14 @@ export const AdvancedGenesisCanvas: React.FC<AdvancedGenesisCanvasProps> = ({
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
-  const [selectedLayoutAlgorithm, setSelectedLayoutAlgorithm] = useState('hybrid');
   
   // Stores
-  const { workflowNodes, workflowEdges, setWorkflowNodes, setWorkflowEdges } = useCanvasStore();
+  const { setWorkflowNodes, setWorkflowEdges } = useCanvasStore();
   const { 
     showGrid, 
     showMinimap, 
     showNeuralNetwork,
     particleIntensity,
-    canvasMode,
     setCanvasMode 
   } = useCanvasUIStore();
   
@@ -206,9 +204,9 @@ export const AdvancedGenesisCanvas: React.FC<AdvancedGenesisCanvasProps> = ({
         const node = nodes[i];
         
         // Update node status
-        setNodes(currentNodes => 
-          currentNodes.map(n => 
-            n.id === node.id 
+        setNodes((currentNodes: any) => 
+          currentNodes.map((n: any) => 
+            n.id === (node as any).id 
               ? { ...n, data: { ...n.data, status: 'executing' } }
               : n
           )
@@ -218,9 +216,9 @@ export const AdvancedGenesisCanvas: React.FC<AdvancedGenesisCanvasProps> = ({
         await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
         
         // Mark as completed
-        setNodes(currentNodes => 
-          currentNodes.map(n => 
-            n.id === node.id 
+        setNodes((currentNodes: any) => 
+          currentNodes.map((n: any) => 
+            n.id === (node as any).id 
               ? { ...n, data: { ...n.data, status: 'completed' } }
               : n
           )
@@ -258,10 +256,10 @@ export const AdvancedGenesisCanvas: React.FC<AdvancedGenesisCanvasProps> = ({
     try {
       console.log('🧠 Optimizing canvas layout...');
       
-      const result = await advancedGenesisCanvasEngine.optimizeLayout(
-        nodes as Node<NodeData>[], 
-        edges as CanvasEdge[]
-      );
+      const result = await advancedGenesisCanvasEngine.generateAdvancedCanvas({
+        nodes: nodes as Node<NodeData>[], 
+        edges: edges as CanvasEdge[]
+      } as any);
       
       setNodes(result.nodes as any);
       setEdges(result.edges as any);
@@ -301,7 +299,7 @@ export const AdvancedGenesisCanvas: React.FC<AdvancedGenesisCanvasProps> = ({
         }
       };
       
-      setEdges((eds: any) => addEdge(newEdge, eds));
+      setEdges((eds: any) => addEdge(newEdge, eds) as any);
       toast.success('Intelligent connection created');
     },
     [setEdges]
