@@ -171,7 +171,7 @@ class TriggerRegistryService {
 
       if (!error && data) {
         // Update in-memory cache
-        data.forEach(trigger => {
+        data.forEach((trigger: TriggerDefinition) => {
           this.activeTriggers.set(trigger.id, trigger);
         });
         return data;
