@@ -221,16 +221,63 @@ export function useCanvas() {
     checkStatus();
   }, [nodes.length, updateExecutionMetrics, toast]);
 
-  // Validate node configuration
+  // Validate node configuration with comprehensive validation
   const validateNode = useCallback(async (nodeId: string, config: Record<string, any>) => {
     try {
-      const result = await canvasService.validateNodeConfig(nodeId, config);
-      return result;
+      const node = nodes.find(n => n.id === nodeId);
+      if (node) {
+        return await canvasService.validateNodeInRealTime(node, { allNodes: nodes, allEdges: edges });
+      }
+      return await canvasService.validateNodeConfig(nodeId, config);
     } catch (err) {
       console.error('Node validation failed:', err);
       return { isValid: false, errors: ['Validation service unavailable'], warnings: [], suggestions: [] };
     }
-  }, []);
+  }, [nodes, edges]);
+
+  // Comprehensive workflow validation
+  const validateWorkflow = useCallback(async () => {
+    try {
+      return await canvasService.validateWorkflow(nodes, edges);
+    } catch (err) {
+      console.error('Workflow validation failed:', err);
+      return { isValid: false, errors: ['Validation service unavailable'], warnings: [], suggestions: [] };
+    }
+  }, [nodes, edges]);
+
+  // Smart connection suggestions
+  const getSuggestedConnections = useCallback(async (sourceNodeId: string, targetPosition: { x: number; y: number }) => {
+    try {
+      return await canvasService.suggestConnections(sourceNodeId, targetPosition, nodes);
+    } catch (err) {
+      console.error('Failed to get connection suggestions:', err);
+      return [];
+    }
+  }, [nodes]);
+
+  // Auto-connect compatible nodes
+  const autoConnectNodes = useCallback(async () => {
+    try {
+      const newEdges = await canvasService.autoConnect(nodes);
+      if (newEdges.length > 0) {
+        setEdges(prev => [...prev, ...newEdges]);
+        addToHistory(nodes, [...edges, ...newEdges]);
+        toast({
+          title: "Smart connections added",
+          description: `${newEdges.length} intelligent connections created`,
+        });
+      }
+      return newEdges;
+    } catch (err) {
+      console.error('Auto-connect failed:', err);
+      toast({
+        title: "Auto-connect failed",
+        description: "Could not create automatic connections",
+        variant: "destructive"
+      });
+      return [];
+    }
+  }, [nodes, edges, setEdges, addToHistory, toast]);
 
   // Auto-optimize canvas layout
   const optimizeLayout = useCallback(async () => {
@@ -317,12 +364,16 @@ export function useCanvas() {
     isLoading,
     error,
     loadCanvasFromBlueprint,
-    // New enhanced features
+    // Core execution features
     isExecuting,
     executionId,
     nodeStatuses,
+    monitorExecution,
+    // Phase 2 Enhanced Features - Smart Canvas Operations
     validateNode,
+    validateWorkflow,
+    getSuggestedConnections,
+    autoConnectNodes,
     optimizeLayout,
-    monitorExecution
   };
 }

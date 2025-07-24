@@ -53,6 +53,47 @@ interface CanvasState {
     lastExecutionTime: Date | null;
   };
   updateExecutionMetrics: (metrics: Partial<CanvasState['executionMetrics']>) => void;
+
+  // Phase 2 Enhanced Features
+  // Smart canvas features
+  smartConnectionsEnabled: boolean;
+  setSmartConnectionsEnabled: (enabled: boolean) => void;
+  
+  // Progressive disclosure
+  userExperienceLevel: 'beginner' | 'intermediate' | 'expert';
+  setUserExperienceLevel: (level: 'beginner' | 'intermediate' | 'expert') => void;
+  
+  // Real-time validation
+  validationResults: {
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+    suggestions: string[];
+  };
+  setValidationResults: (results: CanvasState['validationResults']) => void;
+  
+  // Version control
+  currentVersion: string | null;
+  setCurrentVersion: (version: string | null) => void;
+  
+  // Real-time collaboration
+  collaborators: Array<{
+    id: string;
+    name: string;
+    cursor: { x: number; y: number };
+    color: string;
+    isActive: boolean;
+  }>;
+  setCollaborators: (collaborators: CanvasState['collaborators']) => void;
+  
+  // Canvas insights
+  suggestions: Array<{
+    id: string;
+    type: 'connection' | 'optimization' | 'validation';
+    message: string;
+    action?: () => void;
+  }>;
+  setSuggestions: (suggestions: CanvasState['suggestions']) => void;
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
@@ -154,4 +195,28 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       },
     }));
   },
+
+  // Phase 2 Enhanced Features Implementation
+  smartConnectionsEnabled: true,
+  setSmartConnectionsEnabled: (enabled) => set({ smartConnectionsEnabled: enabled }),
+  
+  userExperienceLevel: 'intermediate',
+  setUserExperienceLevel: (level) => set({ userExperienceLevel: level }),
+  
+  validationResults: {
+    isValid: true,
+    errors: [],
+    warnings: [],
+    suggestions: []
+  },
+  setValidationResults: (results) => set({ validationResults: results }),
+  
+  currentVersion: null,
+  setCurrentVersion: (version) => set({ currentVersion: version }),
+  
+  collaborators: [],
+  setCollaborators: (collaborators) => set({ collaborators }),
+  
+  suggestions: [],
+  setSuggestions: (suggestions) => set({ suggestions }),
 }));
