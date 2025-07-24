@@ -317,7 +317,7 @@ class EventQueueService {
     } catch (error) {
       return {
         success: false,
-        error: error.message || 'Workflow execution failed'
+        error: (error as Error)?.message || 'Workflow execution failed'
       };
     }
   }
