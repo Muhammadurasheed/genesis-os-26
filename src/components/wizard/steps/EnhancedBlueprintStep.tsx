@@ -22,9 +22,9 @@ export const EnhancedBlueprintStep: React.FC = () => {
     user_input, 
     setBlueprint, 
     nextStep, 
-    setCurrentStep,
+    setStep,
     isLoading,
-    setIsLoading
+    addError
   } = useWizardStore();
 
   const [enhancedBlueprint, setEnhancedBlueprint] = useState<any>(null);
@@ -37,7 +37,6 @@ export const EnhancedBlueprintStep: React.FC = () => {
 
   const generateEnhancedBlueprint = async () => {
     try {
-      setIsLoading(true);
       const response = await blueprintService.generateBlueprint(user_input);
       
       if (response) {
@@ -46,9 +45,8 @@ export const EnhancedBlueprintStep: React.FC = () => {
         toast.success('Enhanced blueprint generated successfully!');
       }
     } catch (error: any) {
+      addError('Failed to generate enhanced blueprint');
       toast.error('Failed to generate enhanced blueprint');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -177,7 +175,7 @@ export const EnhancedBlueprintStep: React.FC = () => {
         className="flex justify-between items-center"
       >
         <HolographicButton
-          onClick={() => setCurrentStep('intent')}
+          onClick={() => setStep('intent')}
           variant="outline"
         >
           Back to Intent
