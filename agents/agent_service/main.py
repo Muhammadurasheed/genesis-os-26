@@ -592,9 +592,8 @@ async def run_simulation(simulation_input: SimulationInput):
         
         return {
             "success": True,
-            "simulation_id": results["simulation_id"],
-            "results": results,
-            "message": "Simulation completed successfully"
+            "message": f"Simulation completed for guild {simulation_input.guild_id}",
+            "results": results["results"]
         }
     except Exception as e:
         logger.error(f"Error running simulation: {str(e)}")
