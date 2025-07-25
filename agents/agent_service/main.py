@@ -102,6 +102,10 @@ agent_manager = get_agent_manager()
 gemini_service = get_gemini_service()
 voice_service = get_voice_service()
 
+# Import simulation service
+from lib.simulation_service import SimulationService
+simulation_service = SimulationService()
+
 # Define shutdown event handler
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -565,6 +569,40 @@ async def generate_blueprint(
             content={
                 "error": f"Blueprint generation failed: {str(e)}",
                 "status": "error"
+            }
+        )
+
+# Simulation endpoint
+@app.post("/simulation/run")
+async def run_simulation(simulation_input: SimulationInput):
+    try:
+        logger.info(f"Starting simulation for guild: {simulation_input.guild_id}")
+        
+        # Run simulation using the simulation service
+        results = await simulation_service.run_simulation({
+            "guild_id": simulation_input.guild_id,
+            "agents": simulation_input.agents,
+            "duration_minutes": simulation_input.duration_minutes,
+            "load_factor": simulation_input.load_factor,
+            "error_injection": simulation_input.error_injection,
+            "test_scenarios": simulation_input.test_scenarios
+        })
+        
+        logger.info(f"✅ Simulation completed for guild: {simulation_input.guild_id}")
+        
+        return {
+            "success": True,
+            "simulation_id": results["simulation_id"],
+            "results": results,
+            "message": "Simulation completed successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error running simulation: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": f"Simulation failed: {str(e)}",
+                "success": False
             }
         )
         

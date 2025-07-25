@@ -473,11 +473,11 @@ app.post('/executeFlow', async (req, res) => {
   }
 });
 
-// Agent dispatch endpoint
+// Agent dispatch endpoint (routes to agent_service)
 app.post('/agentDispatch', async (req, res) => {
   try {
     const startTime = Date.now();
-    console.log('🤖 Agent dispatch request received');
+    console.log('🤖 Agent dispatch request received - routing to agent service');
     
     const { agent_id, input, context = {} } = req.body;
     
@@ -488,7 +488,171 @@ app.post('/agentDispatch', async (req, res) => {
       });
     }
 
-    console.log(`Dispatching to agent ${agent_id} with input: ${input.substring(0, 50)}...`);
+    console.log(`Routing agent ${agent_id} execution to agent service`);
+    
+    // Route to agent service
+    const response = await axios.post(`${AGENT_SERVICE_URL}/agent/${agent_id}/execute`, {
+      input,
+      context: {
+        ...context,
+        request_id: uuidv4(),
+        timestamp: new Date().toISOString(),
+        source: 'orchestrator'
+      }
+    });
+    
+    const duration = Date.now() - startTime;
+    console.log(`✅ Agent execution completed in ${duration}ms`);
+    
+    return res.json({
+      ...response.data,
+      execution_metadata: {
+        duration_ms: duration,
+        routed_through: 'orchestrator',
+        agent_service_url: AGENT_SERVICE_URL
+      }
+    });
+  } catch (error: any) {
+    console.error('❌ Error dispatching to agent service:', error);
+    
+    // Handle agent service unavailable
+    if (error.code === 'ECONNREFUSED' || error.response?.status >= 500) {
+      return res.status(503).json({
+        error: 'Agent service unavailable',
+        message: 'The agent execution service is currently unavailable',
+        fallback: 'Please try again later'
+      });
+    }
+    
+    return res.status(error.response?.status || 500).json({
+      error: 'Agent execution failed',
+      message: error.response?.data?.error || error.message
+    });
+  }
+});
+
+// Real-time workflow execution endpoint
+app.post('/realtime/workflow/execute', async (req, res) => {
+  try {
+    console.log('⚡ Real-time workflow execution request received');
+    const { workflow_id, nodes, edges, context = {} } = req.body;
+    
+    if (!nodes || !nodes.length) {
+      return res.status(400).json({
+        error: 'Missing workflow data',
+        message: 'Nodes are required for workflow execution'
+      });
+    }
+
+    const executionId = workflow_id || `realtime-${uuidv4()}`;
+    console.log(`⚡ Starting real-time workflow: ${executionId}`);
+    
+    // Enhanced real-time context
+    const realtimeContext = {
+      ...context,
+      execution_mode: 'realtime',
+      streaming_enabled: true,
+      websocket_updates: true,
+      low_latency: true,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Execute with real-time optimization
+    const result = await workflowService.executeWorkflow(
+      executionId,
+      nodes,
+      edges,
+      realtimeContext
+    );
+    
+    console.log(`✅ Real-time execution started: ${result.executionId}`);
+    
+    return res.status(202).json({
+      executionId: result.executionId,
+      websocket_url: `ws://${req.get('host')}/ws/execution/${result.executionId}`,
+      message: 'Real-time workflow execution started',
+      status: 'streaming',
+      features: {
+        real_time_updates: true,
+        streaming_logs: true,
+        live_metrics: true
+      }
+    });
+  } catch (error: any) {
+    console.error('❌ Error executing real-time workflow:', error);
+    return res.status(500).json({
+      error: 'Failed to execute real-time workflow', 
+      message: error.message
+    });
+  }
+});
+
+// Simulation orchestration endpoint (routes to agent_service)
+app.post('/simulation/orchestrate', async (req, res) => {
+  try {
+    console.log('🔬 Simulation orchestration request - routing to agent service');
+    const { guild_id, agents, duration_minutes, load_factor, error_injection, test_scenarios } = req.body;
+    
+    if (!guild_id || !agents) {
+      return res.status(400).json({
+        error: 'Missing simulation parameters',
+        message: 'guild_id and agents are required'
+      });
+    }
+
+    // Route to agent service for AI-heavy simulation logic
+    const response = await axios.post(`${AGENT_SERVICE_URL}/simulation/run`, {
+      guild_id,
+      agents,
+      duration_minutes: duration_minutes || 5,
+      load_factor: load_factor || 1.0,
+      error_injection: error_injection || false,
+      test_scenarios: test_scenarios || []
+    });
+    
+    console.log(`✅ Simulation orchestrated successfully for guild: ${guild_id}`);
+    
+    return res.json({
+      ...response.data,
+      orchestration_metadata: {
+        routed_through: 'orchestrator',
+        agent_service_url: AGENT_SERVICE_URL,
+        simulation_type: 'ai_powered'
+      }
+    });
+  } catch (error: any) {
+    console.error('❌ Error orchestrating simulation:', error);
+    
+    if (error.code === 'ECONNREFUSED') {
+      return res.status(503).json({
+        error: 'Simulation service unavailable',
+        message: 'The AI simulation service is currently unavailable'
+      });
+    }
+    
+    return res.status(error.response?.status || 500).json({
+      error: 'Simulation orchestration failed',
+      message: error.response?.data?.error || error.message
+    });
+  }
+});
+
+// Legacy agent dispatch for backward compatibility
+app.post('/agentDispatchLegacy', async (req, res) => {
+  try {
+    const startTime = Date.now();
+    console.log('🤖 Legacy agent dispatch request received');
+    
+    const { agent_id, input, context = {} } = req.body;
+    
+    if (!agent_id || !input) {
+      return res.status(400).json({ 
+        error: 'Invalid request',
+        message: 'agent_id and input are required'
+      });
+    }
+
+    console.log(`Legacy dispatching to agent ${agent_id} with input: ${input.substring(0, 50)}...`);
     
     // Add request metadata
     const enhancedContext = {
