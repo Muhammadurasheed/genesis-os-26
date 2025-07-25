@@ -17,6 +17,8 @@ from lib.agent_manager import get_agent_manager
 from lib.gemini_service import get_gemini_service
 from lib.voice_service import get_voice_service
 from lib.monitoring_service import monitoring_service
+from lib.voice_simulation_service import voice_simulation_service
+from lib.video_simulation_service import video_simulation_service
 
 # Load environment variables
 load_dotenv()
@@ -755,6 +757,182 @@ async def get_active_alerts():
             status_code=500,
             content={
                 "error": f"Alert retrieval failed: {str(e)}",
+                "success": False
+            }
+        )
+
+# Voice & Video Simulation Endpoints
+@app.post("/simulation/voice")
+async def simulate_voice_conversation(voice_sim_input: Dict[str, Any]):
+    """Simulate voice conversation with ElevenLabs integration"""
+    try:
+        agent_id = voice_sim_input.get("agent_id")
+        conversation_script = voice_sim_input.get("conversation_script", [])
+        voice_config_data = voice_sim_input.get("voice_config", {})
+        
+        if not agent_id or not conversation_script:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "agent_id and conversation_script are required",
+                    "success": False
+                }
+            )
+        
+        # Create voice config
+        from lib.voice_simulation_service import VoiceSimulationConfig, ConversationTurn
+        
+        voice_config = VoiceSimulationConfig(
+            voice_id=voice_config_data.get("voice_id", "9BWtsMINqrJLrRacOk9x"),  # Default to Aria
+            model_id=voice_config_data.get("model_id", "eleven_multilingual_v2"),
+            stability=voice_config_data.get("stability", 0.5),
+            similarity_boost=voice_config_data.get("similarity_boost", 0.75),
+            style=voice_config_data.get("style", 0.0)
+        )
+        
+        # Convert conversation script
+        conversation_turns = [
+            ConversationTurn(
+                speaker=turn.get("speaker", "agent"),
+                message=turn.get("message", ""),
+                expected_response_pattern=turn.get("expected_response_pattern"),
+                emotion_target=turn.get("emotion_target", "neutral"),
+                max_response_time_ms=turn.get("max_response_time_ms", 3000)
+            )
+            for turn in conversation_script
+        ]
+        
+        logger.info(f"🎤 Starting voice simulation for agent {agent_id}")
+        
+        # Run voice simulation
+        result = await voice_simulation_service.simulate_conversation(
+            agent_id, conversation_turns, voice_config
+        )
+        
+        return {
+            "success": True,
+            "simulation_id": result.simulation_id,
+            "results": asdict(result),
+            "message": "Voice simulation completed successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Voice simulation error: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": f"Voice simulation failed: {str(e)}",
+                "success": False
+            }
+        )
+
+@app.post("/simulation/video")
+async def simulate_video_conversation(video_sim_input: Dict[str, Any]):
+    """Simulate video conversation with Tavus integration"""
+    try:
+        agent_id = video_sim_input.get("agent_id")
+        conversation_script = video_sim_input.get("conversation_script", [])
+        video_config_data = video_sim_input.get("video_config", {})
+        
+        if not agent_id or not conversation_script:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "agent_id and conversation_script are required",
+                    "success": False
+                }
+            )
+        
+        # Create video config
+        from lib.video_simulation_service import TavusConfig
+        
+        video_config = TavusConfig(
+            persona_id=video_config_data.get("persona_id", "persona_1"),
+            background_setting=video_config_data.get("background_setting", "office"),
+            interaction_mode=video_config_data.get("interaction_mode", "speaking"),
+            video_quality=video_config_data.get("video_quality", "high"),
+            frame_rate=video_config_data.get("frame_rate", 30),
+            resolution=video_config_data.get("resolution", "1080p"),
+            background_blur=video_config_data.get("background_blur", False),
+            custom_styling=video_config_data.get("custom_styling")
+        )
+        
+        logger.info(f"🎥 Starting video simulation for agent {agent_id}")
+        
+        # Run video simulation
+        result = await video_simulation_service.simulate_video_conversation(
+            agent_id, conversation_script, video_config
+        )
+        
+        return {
+            "success": True,
+            "simulation_id": result.simulation_id,
+            "results": asdict(result),
+            "message": "Video simulation completed successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Video simulation error: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": f"Video simulation failed: {str(e)}",
+                "success": False
+            }
+        )
+
+@app.get("/simulation/voice/{simulation_id}")
+async def get_voice_simulation_result(simulation_id: str):
+    """Get voice simulation result by ID"""
+    try:
+        result = voice_simulation_service.get_simulation_result(simulation_id)
+        if not result:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": f"Voice simulation {simulation_id} not found",
+                    "success": False
+                }
+            )
+        
+        return {
+            "success": True,
+            "result": asdict(result)
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving voice simulation: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": f"Failed to retrieve voice simulation: {str(e)}",
+                "success": False
+            }
+        )
+
+@app.get("/simulation/video/{simulation_id}")
+async def get_video_simulation_result(simulation_id: str):
+    """Get video simulation result by ID"""
+    try:
+        result = video_simulation_service.get_simulation_result(simulation_id)
+        if not result:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": f"Video simulation {simulation_id} not found",
+                    "success": False
+                }
+            )
+        
+        return {
+            "success": True,
+            "result": asdict(result)
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving video simulation: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": f"Failed to retrieve video simulation: {str(e)}",
                 "success": False
             }
         )
