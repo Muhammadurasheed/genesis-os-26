@@ -24,6 +24,41 @@ Genesis transforms business owners from technical novices to AI-powered entrepre
 ## Phase 1: Foundation & Core Infrastructure (Months 1-3)
 *Goal: Bulletproof core that can handle everything we'll build on top*
 
+### 🏛️ **CORRECTED BACKEND ARCHITECTURE - TWO-SERVER APPROACH**
+
+#### **Orchestrator Service (Node.js/Express)**
+**Role:** High-level coordination and business logic
+- **Business Process Orchestration**: Coordinate multi-step workflows
+- **Canvas Management**: Visual workflow generation and optimization  
+- **Real-time Collaboration**: WebSocket connections for canvas editing
+- **Workflow Execution**: Multi-agent task coordination and state management
+- **Integration Hub**: External API management and credential orchestration
+- **Analytics & Monitoring**: Business metrics and performance dashboards
+- **Memory Coordination**: Cross-agent memory sharing and context management
+
+#### **Agent Service (FastAPI/Python)**  
+**Role:** AI execution and specialized processing
+- **Individual Agent Runtime**: Single agent task execution with AI models
+- **Intent Processing**: Natural language → structured blueprint conversion
+- **Voice Synthesis**: ElevenLabs integration for speech generation
+- **Simulation Engine**: Safe testing environment for agent interactions
+- **Memory Operations**: Vector storage, retrieval, and semantic search
+- **Monitoring & Metrics**: Real-time execution tracking and performance metrics
+- **Blueprint Generation**: AI-powered workflow design from user intent
+
+#### **Data Flow Between Services**
+```
+Frontend → Orchestrator → Agent Service → AI Models
+    ↓            ↓              ↓
+Supabase ← Analytics ← Memory Storage ← Vector DB
+```
+
+#### **Service Communication Protocol**
+- **HTTP/REST**: Request-response patterns for stateless operations
+- **WebSocket**: Real-time updates and monitoring streams  
+- **Redis Queue**: Async task management between services
+- **Shared Database**: Consistent state via Supabase
+
 ### Sprint 1.1: Authentication & Multi-Tenancy Foundation (Week 1-2)
 
 #### Technical Specifications
