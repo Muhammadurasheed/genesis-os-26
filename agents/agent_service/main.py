@@ -4,6 +4,7 @@ import logging
 import asyncio
 import traceback
 import time
+from dataclasses import asdict
 from typing import Dict, Any, Optional, List, Union, Annotated
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, HTTPException, Body, Request, Depends, Path, Query, status, APIRouter
@@ -15,6 +16,7 @@ from lib.memory_service import get_memory_service
 from lib.agent_manager import get_agent_manager
 from lib.gemini_service import get_gemini_service
 from lib.voice_service import get_voice_service
+from lib.monitoring_service import monitoring_service
 
 # Load environment variables
 load_dotenv()
@@ -137,8 +139,11 @@ async def lifespan(app: FastAPI):
             )
             logger.info(f"✅ Memory service operational (test memory: {test_memory_id})")
             
+            # Initialize monitoring service
+            await monitoring_service.start_monitoring()
+            logger.info("🔍 Real-time monitoring started")
+            
         except Exception as e:
-            logger.error(f"⚠️ Error during enhanced service initialization: {e}")
             logger.info("⚠️ Continuing with basic service configuration")
             
         yield
@@ -210,37 +215,54 @@ async def get_version():
         "build": os.getenv("BUILD_VERSION", "development")
     }
 
-# Execute agent endpoint
+# Execute agent endpoint with comprehensive monitoring
 @app.post("/agent/{agent_id}/execute", response_model=AgentOutput)
 async def execute_agent(agent_id: str, agent_input: AgentInput):
-    print(f"Received execute request for agent {agent_id}")
+    execution_id = f"exec-{agent_id}-{int(time.time() * 1000)}"
+    
     try:
         input_text = agent_input.input
         context = agent_input.context or {}
         
-        logger.info(f"Agent {agent_id} executing with input: {input_text[:50]}...")
+        # Start execution tracking with monitoring
+        monitoring_service.start_execution_tracking(execution_id, {
+            "agent_id": agent_id,
+            "input_length": len(input_text),
+            "context_keys": list(context.keys()),
+            "timestamp": time.time()
+        })
         
-        # Get execution ID from context or generate one
-        execution_id = context.get("executionId", f"exec-{int(time.time())}")
+        logger.info(f"🤖 Agent {agent_id} executing with monitoring ID: {execution_id}")
         
-        # Add execution ID to context if not present
-        if "executionId" not in context:
-            context["executionId"] = execution_id
+        # Record metrics
+        monitoring_service.record_metric("agent_execution_started", 1, {"agent_id": agent_id}, monitoring_service.MetricType.COUNTER)
+        
+        # Add execution ID to context
+        context["executionId"] = execution_id
+        context["monitoring_enabled"] = True
         
         # Note if this is a test/simulation
         is_simulation = context.get("isSimulation", False)
-        logger.info(f"Execution {execution_id} is simulation: {is_simulation}")
+        if is_simulation:
+            monitoring_service.record_metric("simulation_execution", 1, {"agent_id": agent_id}, monitoring_service.MetricType.COUNTER)
         
-        # Execute the agent
+        # Execute the agent with function call tracking
+        start_time = time.time()
+        
+        # Track agent manager execution
+        agent_start = time.time()
         output, chain_of_thought = await agent_manager.execute_agent(
             agent_id=agent_id,
             input_text=input_text,
             context=context
         )
+        agent_duration = (time.time() - agent_start) * 1000
+        monitoring_service.record_function_call(execution_id, "agent_manager.execute_agent", agent_duration, True)
         
-        # Handle voice synthesis if enabled
+        # Handle voice synthesis if enabled with monitoring
         audio_data = None
         if context.get("voice_enabled", False) and voice_service.enabled:
+            voice_start = time.time()
             voice_id = context.get("voice_id")
             audio_data = await voice_service.synthesize_speech(
                 text=output,
@@ -249,9 +271,25 @@ async def execute_agent(agent_id: str, agent_input: AgentInput):
                 similarity_boost=context.get('voice_config', {}).get('similarity_boost', 0.75),
                 style=context.get('voice_config', {}).get('style', 0.0)
             )
+            voice_duration = (time.time() - voice_start) * 1000
+            monitoring_service.record_function_call(execution_id, "voice_service.synthesize_speech", voice_duration, audio_data is not None)
+            
+            if audio_data:
+                monitoring_service.record_metric("voice_synthesis_success", 1, {"agent_id": agent_id}, monitoring_service.MetricType.COUNTER)
+            else:
+                monitoring_service.record_metric("voice_synthesis_failure", 1, {"agent_id": agent_id}, monitoring_service.MetricType.COUNTER)
         
-        # Log execution
-        logger.info(f"✅ Agent {agent_id} completed execution for {execution_id}")
+        # Calculate total execution time
+        total_duration = (time.time() - start_time) * 1000
+        
+        # Record comprehensive metrics
+        monitoring_service.record_metric("agent_response_time_ms", total_duration, {"agent_id": agent_id, "success": "true"}, monitoring_service.MetricType.TIMER)
+        monitoring_service.record_metric("agent_execution_success", 1, {"agent_id": agent_id}, monitoring_service.MetricType.COUNTER)
+        
+        # End execution tracking
+        monitoring_service.end_execution_tracking(execution_id, "completed")
+        
+        logger.info(f"✅ Agent {agent_id} completed execution {execution_id} in {total_duration:.2f}ms")
         
         return AgentOutput(
             output=output,
@@ -260,20 +298,39 @@ async def execute_agent(agent_id: str, agent_input: AgentInput):
             audio=audio_data
         )
     except Exception as e:
-        logger.error(f"Error executing agent {agent_id}: {str(e)}")
+        # Record error metrics
+        if 'execution_id' in locals():
+            monitoring_service.record_metric("agent_execution_error", 1, {"agent_id": agent_id, "error_type": e.__class__.__name__}, monitoring_service.MetricType.COUNTER)
+            monitoring_service.end_execution_tracking(execution_id, "error", str(e))
+        
+        logger.error(f"❌ Error executing agent {agent_id}: {str(e)}")
         
         # Log detailed traceback in debug mode
         if DEBUG_MODE:
             logger.error(f"Traceback: {traceback.format_exc()}")
             
-        # Determine appropriate error code
+        # Determine appropriate error code with enhanced categorization
         status_code = 500
+        error_category = "internal_error"
+        
         if "not found" in str(e).lower():
             status_code = 404
+            error_category = "not_found"
         elif "invalid input" in str(e).lower() or "validation" in str(e).lower():
             status_code = 400
+            error_category = "validation_error"
         elif "unauthorized" in str(e).lower() or "permission" in str(e).lower():
             status_code = 403
+            error_category = "authorization_error"
+        elif "timeout" in str(e).lower():
+            status_code = 408
+            error_category = "timeout_error"
+        elif "rate limit" in str(e).lower():
+            status_code = 429
+            error_category = "rate_limit_error"
+        
+        # Record categorized error metrics
+        monitoring_service.record_metric("error_by_category", 1, {"category": error_category, "agent_id": agent_id}, monitoring_service.MetricType.COUNTER)
             
         # Create detailed error response
         return JSONResponse(
@@ -284,6 +341,8 @@ async def execute_agent(agent_id: str, agent_input: AgentInput):
                 "detail": {
                     "agent_id": agent_id,
                     "error_type": e.__class__.__name__,
+                    "error_category": error_category,
+                    "execution_id": locals().get('execution_id'),
                     "timestamp": time.time()
                 }
             }
@@ -604,7 +663,101 @@ async def run_simulation(simulation_input: SimulationInput):
                 "success": False
             }
         )
+
+# Advanced monitoring and metrics endpoints
+@app.get("/monitoring/health")
+async def get_system_health():
+    """Get comprehensive system health metrics"""
+    try:
+        health_data = monitoring_service.get_system_health()
+        return {
+            "success": True,
+            "health": health_data,
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        logger.error(f"Error getting system health: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": f"Health check failed: {str(e)}",
+                "success": False
+            }
+        )
+
+@app.get("/monitoring/metrics")
+async def get_metrics_summary():
+    """Get current metrics summary"""
+    try:
+        metrics = monitoring_service._get_metrics_summary()
+        return {
+            "success": True,
+            "metrics": metrics,
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        logger.error(f"Error getting metrics: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": f"Metrics retrieval failed: {str(e)}",
+                "success": False
+            }
+        )
+
+@app.get("/monitoring/execution/{execution_id}")
+async def get_execution_report(execution_id: str):
+    """Get detailed execution performance report"""
+    try:
+        report = monitoring_service.get_performance_report(execution_id)
+        if not report:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": f"Execution {execution_id} not found",
+                    "success": False
+                }
+            )
         
+        return {
+            "success": True,
+            "report": report,
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        logger.error(f"Error getting execution report: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": f"Report generation failed: {str(e)}",
+                "success": False
+            }
+        )
+
+@app.get("/monitoring/alerts")
+async def get_active_alerts():
+    """Get currently active alerts"""
+    try:
+        active_alerts = [
+            alert for alert in monitoring_service.alerts.values() 
+            if not alert.resolved and time.time() - alert.timestamp < 3600  # Last hour
+        ]
+        
+        return {
+            "success": True,
+            "alerts": [asdict(alert) for alert in active_alerts],
+            "count": len(active_alerts),
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        logger.error(f"Error getting alerts: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": f"Alert retrieval failed: {str(e)}",
+                "success": False
+            }
+        )
 # Register the API router
 app.include_router(api_router)
 
