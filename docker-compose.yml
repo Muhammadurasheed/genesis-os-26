@@ -17,24 +17,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # PostgreSQL for persistent data
-  postgres:
-    image: postgres:15-alpine
-    container_name: genesisos-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: genesisos
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-genesisos_password}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # PostgreSQL removed - using Supabase instead
 
   # Agent Service (Python FastAPI)
   agent-service:
@@ -48,15 +31,14 @@ services:
     environment:
       - AGENT_PORT=8001
       - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-genesisos_password}@postgres:5432/genesisos
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
       - PINECONE_API_KEY=${PINECONE_API_KEY}
       - TAVUS_API_KEY=${TAVUS_API_KEY}
     depends_on:
       redis:
-        condition: service_healthy
-      postgres:
         condition: service_healthy
     volumes:
       - ./agents/agent_service:/app
@@ -84,7 +66,8 @@ services:
       - PORT=3001
       - NODE_ENV=production
       - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-genesisos_password}@postgres:5432/genesisos
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - AGENT_SERVICE_URL=http://agent-service:8001
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
@@ -92,8 +75,6 @@ services:
       - TAVUS_API_KEY=${TAVUS_API_KEY}
     depends_on:
       redis:
-        condition: service_healthy
-      postgres:
         condition: service_healthy
       agent-service:
         condition: service_healthy
@@ -217,7 +198,6 @@ services:
 
 volumes:
   redis-data:
-  postgres-data:
   prometheus-data:
   grafana-data:
   elasticsearch-data:
