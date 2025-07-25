@@ -601,37 +601,100 @@ async def get_agent_memories(agent_id: str, limit: int = 10):
             }
         )
 
-# Blueprint generation endpoint
+# Enhanced blueprint generation endpoint with comprehensive AI reasoning
 @app.post("/generate-blueprint")
 async def generate_blueprint(
-    user_input: str = Body(..., embed=True)
+    blueprint_input: BlueprintInput
 ):
     try:
-        logger.info(f"Generating blueprint for: {user_input[:50]}...")
+        user_input = blueprint_input.user_input
+        context = blueprint_input.context or {}
+        
+        logger.info(f"🏗️ Enhanced blueprint generation request: {user_input[:100]}...")
         
         if not gemini_service.api_key or gemini_service.api_key.startswith("your_"):
             return JSONResponse(
                 status_code=400,
                 content={
                     "error": "Gemini API key is not configured. Please set GEMINI_API_KEY in .env file.",
-                    "status": "error"
+                    "status": "error",
+                    "fallback_available": False
                 }
             )
         
-        blueprint = await gemini_service.generate_blueprint(user_input)
+        # Import and initialize enhanced blueprint service
+        from lib.enhanced_blueprint_service import EnhancedBlueprintService
+        enhanced_service = EnhancedBlueprintService()
         
-        logger.info(f"✅ Blueprint generated successfully: {blueprint['id']}")
-        
-        return blueprint
-    except Exception as e:
-        logger.error(f"Error generating blueprint: {str(e)}")
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": f"Blueprint generation failed: {str(e)}",
-                "status": "error"
+        # Generate comprehensive blueprint with advanced AI reasoning
+        execution_start = time.time()
+        comprehensive_blueprint = await enhanced_service.generate_comprehensive_blueprint(
+            user_input=user_input,
+            context={
+                **context,
+                "timestamp": time.time(),
+                "request_source": "genesis_wizard",
+                "version": "v2.0",
+                "enhanced_mode": True
             }
         )
+        execution_time = time.time() - execution_start
+        
+        # Record metrics
+        monitoring_service.record_metric("blueprint_generation_time", execution_time * 1000, {"success": "true"}, monitoring_service.MetricType.TIMER)
+        monitoring_service.record_metric("blueprint_generation_success", 1, {"quality": comprehensive_blueprint['generation_metadata']['quality_score']}, monitoring_service.MetricType.COUNTER)
+        
+        logger.info(f"✅ Enhanced blueprint generated: {comprehensive_blueprint['id']}")
+        logger.info(f"Quality score: {comprehensive_blueprint['generation_metadata']['quality_score']}")
+        logger.info(f"Execution time: {execution_time:.2f}s")
+        
+        return {
+            "success": True,
+            "blueprint": comprehensive_blueprint,
+            "message": "Enhanced blueprint generated successfully",
+            "metadata": {
+                "blueprint_id": comprehensive_blueprint["id"],
+                "quality_score": comprehensive_blueprint["generation_metadata"]["quality_score"],
+                "execution_time_seconds": execution_time,
+                "agents_designed": len(comprehensive_blueprint.get("agent_architecture", {}).get("agents", [])),
+                "workflows_created": len(comprehensive_blueprint.get("workflow_design", {}).get("workflows", [])),
+                "integrations_planned": len(comprehensive_blueprint.get("integration_strategy", {}).get("required_integrations", [])),
+                "complexity_assessment": comprehensive_blueprint.get("estimated_complexity", "Unknown"),
+                "success_probability": comprehensive_blueprint.get("success_probability", 0),
+                "implementation_timeline": comprehensive_blueprint.get("implementation_roadmap", {}).get("total_estimated_duration", "Unknown")
+            }
+        }
+    except Exception as e:
+        logger.error(f"❌ Enhanced blueprint generation error: {str(e)}")
+        
+        # Record error metrics
+        monitoring_service.record_metric("blueprint_generation_error", 1, {"error_type": e.__class__.__name__}, monitoring_service.MetricType.COUNTER)
+        
+        # Provide fallback option
+        try:
+            logger.info("🔄 Attempting fallback to basic blueprint generation...")
+            fallback_blueprint = await gemini_service.generate_blueprint(blueprint_input.user_input)
+            
+            return {
+                "success": True,
+                "blueprint": fallback_blueprint,
+                "message": "Basic blueprint generated (enhanced mode failed)",
+                "fallback_used": True,
+                "error_details": str(e)
+            }
+        except Exception as fallback_error:
+            logger.error(f"❌ Fallback blueprint generation also failed: {str(fallback_error)}")
+            
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": f"Both enhanced and fallback blueprint generation failed",
+                    "enhanced_error": str(e),
+                    "fallback_error": str(fallback_error),
+                    "status": "error",
+                    "success": False
+                }
+            )
 
 # Simulation endpoint
 @app.post("/simulation/run")
