@@ -5,6 +5,7 @@ import { AuthForm } from './components/auth/AuthForm';
 import { EnhancedWizardFlow } from './components/wizard/EnhancedWizardFlow';
 import { Header } from './components/layout/Header';
 import { BackendStatus } from './components/ui/BackendStatus';
+import { ProductionReadinessDashboard } from './components/phase3/ProductionReadinessDashboard';
 import { QuantumLoader } from './components/ui/QuantumLoader';
 import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard';
 import { MagicalBackground } from './components/ui/MagicalBackground';
@@ -14,7 +15,7 @@ import './services/phase4AutoExecutor';
 import { MainDashboard } from './components/pages/MainDashboard';
 import { AgentsPage } from './components/pages/AgentsPage';
 import { GuildsPage } from './components/pages/GuildsPage';
-import { MarketplacePage } from './components/pages/MarketplacePage';
+// import { MarketplacePage } from './components/pages/MarketplacePage';
 import { Phase4CompletionDashboard } from './components/phase4/Phase4CompletionDashboard';
 
 type AppState = 'landing' | 'auth' | 'app';
@@ -120,7 +121,7 @@ function App() {
       case 'agents':
         return <AgentsPage />;
       case 'marketplace':
-        return <MarketplacePage />;
+        return <ProductionReadinessDashboard workspaceId="demo-workspace" />;
       case 'wizard':
         return <EnhancedWizardFlow />;
       case 'analytics':
