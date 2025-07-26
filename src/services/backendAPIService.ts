@@ -49,7 +49,7 @@ class BackendAPIService {
     
     const agentServiceUrl = process.env.NODE_ENV === 'production'
       ? 'https://genesisos-agents.onrender.com'
-      : 'http://localhost:8000';
+      : 'http://localhost:8001';
 
     this.orchestratorClient = axios.create({
       baseURL: orchestratorUrl,
