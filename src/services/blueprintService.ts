@@ -38,7 +38,15 @@ export const blueprintService = {
     try {
       console.log('🧠 Master Blueprint: Generating blueprint with Einstein-level analysis...');
       
-      // Use Einstein Intent Engine for deep understanding
+      // Use Backend Integration Service for Phase 1 engines
+      const { backendIntegrationService } = await import('./backendIntegrationService');
+      const enhancedResult = await backendIntegrationService.generateEnhancedBlueprint(userInput);
+      
+      if (enhancedResult.success && enhancedResult.data) {
+        return enhancedResult.data;
+      }
+      
+      // Fallback to direct Einstein engine
       const { einsteinIntentEngine } = await import('./ai/einsteinIntentEngine');
       const analysis = await einsteinIntentEngine.analyzeUserIntent(userInput);
       

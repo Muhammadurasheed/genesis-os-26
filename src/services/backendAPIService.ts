@@ -400,6 +400,67 @@ class BackendAPIService {
       throw new Error(error.response?.data?.error || 'Failed to validate credential');
     }
   }
+
+  // Phase 1 Critical Endpoints - Einstein Engine Integration
+  async analyzeIntent(userInput: string): Promise<APIResponse> {
+    try {
+      const response = await this.agentServiceClient.post('/api/ai/einstein/analyze', { 
+        user_input: userInput 
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to analyze intent');
+    }
+  }
+
+  async predictCosts(blueprint: any): Promise<APIResponse> {
+    try {
+      const response = await this.agentServiceClient.post('/api/ai/cost-prediction/predict', { 
+        blueprint 
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to predict costs');
+    }
+  }
+
+  async discoverMCPTools(goals: string[]): Promise<APIResponse> {
+    try {
+      const response = await this.agentServiceClient.post('/api/ai/mcp/discover', { 
+        goals 
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to discover MCP tools');
+    }
+  }
+
+  async checkEinsteinService(): Promise<boolean> {
+    try {
+      const response = await this.agentServiceClient.get('/api/ai/einstein/health');
+      return response.status === 200;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async checkCostPredictionService(): Promise<boolean> {
+    try {
+      const response = await this.agentServiceClient.get('/api/ai/cost-prediction/health');
+      return response.status === 200;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async checkMCPService(): Promise<boolean> {
+    try {
+      const response = await this.agentServiceClient.get('/api/ai/mcp/health');
+      return response.status === 200;
+    } catch (error) {
+      return false;
+    }
+  }
 }
 
 export const backendAPIService = new BackendAPIService();
