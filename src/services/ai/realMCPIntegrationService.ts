@@ -370,7 +370,7 @@ export class RealMCPIntegrationService {
 
     // Auto-connect to relevant servers
     for (const integration of analysis.required_integrations) {
-      const serverId = this.mapIntegrationToServer(integration.service);
+      const serverId = this.mapIntegrationToServer(integration.service_name);
       if (serverId && this.serverRegistry.has(serverId)) {
         try {
           const connectionId = await this.connectToServer(serverId);
@@ -491,32 +491,32 @@ export class RealMCPIntegrationService {
   }
 
   // Message handlers
-  private async handleToolsList(message: MCPMessage): Promise<any> {
+  private async handleToolsList(_message: MCPMessage): Promise<any> {
     // Implementation for tools/list
     return { tools: [] };
   }
 
-  private async handleToolsCall(message: MCPMessage): Promise<any> {
+  private async handleToolsCall(_message: MCPMessage): Promise<any> {
     // Implementation for tools/call
     return { result: 'Tool executed' };
   }
 
-  private async handleResourcesList(message: MCPMessage): Promise<any> {
+  private async handleResourcesList(_message: MCPMessage): Promise<any> {
     // Implementation for resources/list
     return { resources: [] };
   }
 
-  private async handleResourcesRead(message: MCPMessage): Promise<any> {
+  private async handleResourcesRead(_message: MCPMessage): Promise<any> {
     // Implementation for resources/read
     return { contents: [] };
   }
 
-  private async handlePromptsList(message: MCPMessage): Promise<any> {
+  private async handlePromptsList(_message: MCPMessage): Promise<any> {
     // Implementation for prompts/list
     return { prompts: [] };
   }
 
-  private async handlePromptsGet(message: MCPMessage): Promise<any> {
+  private async handlePromptsGet(_message: MCPMessage): Promise<any> {
     // Implementation for prompts/get
     return { messages: [] };
   }
@@ -534,10 +534,11 @@ export class RealMCPIntegrationService {
  * Stdio Transport for MCP servers
  */
 class StdioTransport implements MCPTransport {
-  private process: any; // Child process
-  private messageQueue: MCPMessage[] = [];
+  // TODO: Will be used when actual child process spawning is implemented
+  private _process: any; // Child process placeholder
+  private _messageQueue: MCPMessage[] = [];
 
-  constructor(private command: string[], private env: Record<string, string>) {}
+  constructor(private _command: string[], private _env: Record<string, string>) {}
 
   async send(message: MCPMessage): Promise<void> {
     // Implementation would spawn child process and send via stdin
@@ -566,7 +567,7 @@ class StdioTransport implements MCPTransport {
  * WebSocket Transport for MCP servers
  */
 class WebSocketTransport implements MCPTransport {
-  constructor(private url: string) {}
+  constructor(private _url: string) {}
 
   async send(message: MCPMessage): Promise<void> {
     console.log('📤 WebSocket send:', message.method);
@@ -588,7 +589,7 @@ class WebSocketTransport implements MCPTransport {
  * Server-Sent Events Transport for MCP servers
  */
 class SSETransport implements MCPTransport {
-  constructor(private url: string) {}
+  constructor(private _url: string) {}
 
   async send(message: MCPMessage): Promise<void> {
     console.log('📤 SSE send:', message.method);

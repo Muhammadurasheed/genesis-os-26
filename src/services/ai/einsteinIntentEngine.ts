@@ -4,7 +4,8 @@
  * Uses multi-model reasoning with semantic understanding
  */
 
-// import { multiModelReasoningService } from './multiModelReasoningService'; // TODO: Implement
+// TODO: Implement actual multi-model service
+// import { multiModelReasoningService } from './multiModelReasoningService';
 
 export interface EinsteinIntentAnalysis {
   user_intent_summary: string;
@@ -138,12 +139,6 @@ export interface SemanticAnalysis {
 }
 
 class EinsteinIntentEngine {
-  private readonly modelConfigs = {
-    primaryAnalyst: 'claude-sonnet-4-20250514',
-    semanticProcessor: 'claude-3-5-haiku-20241022',
-    validator: 'claude-3-5-sonnet-20241022'
-  };
-
   constructor() {
     console.log('🧠 Einstein Intent Engine initialized - Revolutionary intent understanding');
   }
@@ -152,7 +147,7 @@ class EinsteinIntentEngine {
    * Main analysis function - Einstein-level intent understanding
    */
   public async analyzeUserIntent(userInput: string): Promise<EinsteinIntentAnalysis> {
-    console.log('🔍 Einstein analyzing user intent with multi-model reasoning...');
+    console.log('🔍 Einstein analyzing user intent with advanced reasoning...');
 
     try {
       // Step 1: Semantic analysis with advanced NLP
@@ -180,15 +175,14 @@ class EinsteinIntentEngine {
    */
   public async generateClarificationQuestions(
     analysis: EinsteinIntentAnalysis,
-    _userResponses: Record<string, string> = {}
+    userResponses: Record<string, string> = {}
   ): Promise<ClarificationQuestion[]> {
     console.log('🤔 Einstein generating intelligent clarification questions...');
 
     try {
-      // TODO: Implement actual multi-model processing
-      const response = ['mock analysis'];
-
-      return this.parseClarificationQuestions(response[0]);
+      // TODO: Use actual multi-model processing when available
+      const response = ['mock clarification'];
+      return this.parseClarificationQuestions(response[0], analysis, userResponses);
     } catch (error) {
       console.error('Clarification generation failed:', error);
       return this.createFallbackQuestions(analysis);
@@ -200,15 +194,14 @@ class EinsteinIntentEngine {
    */
   public async refineAnalysisWithResponses(
     originalAnalysis: EinsteinIntentAnalysis,
-    _userResponses: Record<string, string>
+    userResponses: Record<string, string>
   ): Promise<EinsteinIntentAnalysis> {
     console.log('🔄 Einstein refining analysis with user responses...');
 
     try {
-      // TODO: Implement actual multi-model processing
+      // TODO: Use actual multi-model processing when available
       const response = ['refined analysis'];
-
-      return this.parseRefinedAnalysis(response[0], originalAnalysis);
+      return this.parseRefinedAnalysis(response[0], originalAnalysis, userResponses);
     } catch (error) {
       console.error('Analysis refinement failed:', error);
       return originalAnalysis;
@@ -218,22 +211,12 @@ class EinsteinIntentEngine {
   // Private helper methods
 
   private async performSemanticAnalysis(userInput: string): Promise<SemanticAnalysis> {
-    const _prompt = `Perform advanced semantic analysis on this user input:
-"${userInput}"
-
-Extract:
-1. Named entities with types and confidence scores
-2. Intent categories with confidence levels
-3. Sentiment analysis
-4. Complexity indicators
-5. Urgency signals
-
-Return structured analysis in JSON format.`;
+    // TODO: Implement advanced semantic analysis when multi-model service is ready
+    console.log('Performing semantic analysis for:', userInput);
 
     try {
-      // TODO: Implement actual multi-model processing
+      // TODO: Use actual multi-model processing
       const response = ['mock analysis'];
-
       return this.parseSemanticAnalysis(response[0]);
     } catch (error) {
       console.error('Semantic analysis failed:', error);
@@ -276,9 +259,12 @@ Return refined analysis.`;
   }
 
   private async generateStructuredAnalysis(
-    _analysisText: string,
+    analysisText: string,
     userInput: string
   ): Promise<EinsteinIntentAnalysis> {
+    // Use analysisText for comprehensive analysis when multi-model service is ready
+    console.log('Generating structured analysis from:', analysisText);
+    
     // Fallback structured analysis with all required properties
     return {
       user_intent_summary: `User wants to: ${userInput}`,
@@ -453,35 +439,9 @@ Return refined analysis.`;
     };
   }
 
-  // Additional helper methods for parsing and building prompts
-  private buildPrimaryAnalysisPrompt(userInput: string, semanticAnalysis: SemanticAnalysis): string {
-    return `Analyze this business requirement with Einstein-level intelligence:
-"${userInput}"
-
-Semantic context: ${JSON.stringify(semanticAnalysis)}
-
-Provide comprehensive analysis including business context, processes, agents, costs, and implementation roadmap.`;
-  }
-
-  private buildClarificationPrompt(analysis: EinsteinIntentAnalysis, userResponses: Record<string, string>): string {
-    return `Generate intelligent clarification questions based on this analysis:
-${JSON.stringify(analysis, null, 2)}
-
-Previous responses: ${JSON.stringify(userResponses)}
-
-Focus on gaps that could significantly impact implementation success.`;
-  }
-
-  private buildRefinementPrompt(analysis: EinsteinIntentAnalysis, userResponses: Record<string, string>): string {
-    return `Refine this analysis based on user clarifications:
-Original: ${JSON.stringify(analysis, null, 2)}
-Responses: ${JSON.stringify(userResponses)}
-
-Update analysis to reflect new information.`;
-  }
-
-  private parseSemanticAnalysis(_response: string): SemanticAnalysis {
-    // Fallback semantic analysis
+  private parseSemanticAnalysis(response: string): SemanticAnalysis {
+    // TODO: Parse actual semantic analysis response
+    console.log('Parsing semantic analysis:', response);
     return {
       entities: [],
       intent_categories: [{ category: 'automation', confidence: 0.7, keywords: [] }],
@@ -501,7 +461,12 @@ Update analysis to reflect new information.`;
     };
   }
 
-  private parseClarificationQuestions(_response: string): ClarificationQuestion[] {
+  private parseClarificationQuestions(
+    response: string, 
+    analysis: EinsteinIntentAnalysis, 
+    userResponses: Record<string, string>
+  ): ClarificationQuestion[] {
+    console.log('Parsing clarification questions:', response, analysis, userResponses);
     return [{
       question: 'What is your primary business goal?',
       purpose: 'Understand core objective',
@@ -510,7 +475,8 @@ Update analysis to reflect new information.`;
     }];
   }
 
-  private createFallbackQuestions(_analysis: EinsteinIntentAnalysis): ClarificationQuestion[] {
+  private createFallbackQuestions(analysis: EinsteinIntentAnalysis): ClarificationQuestion[] {
+    console.log('Creating fallback questions for:', analysis);
     return [{
       question: 'What tools do you currently use?',
       purpose: 'Identify integration needs',
@@ -519,7 +485,12 @@ Update analysis to reflect new information.`;
     }];
   }
 
-  private parseRefinedAnalysis(_response: string, original: EinsteinIntentAnalysis): EinsteinIntentAnalysis {
+  private parseRefinedAnalysis(
+    response: string, 
+    original: EinsteinIntentAnalysis, 
+    userResponses: Record<string, string>
+  ): EinsteinIntentAnalysis {
+    console.log('Parsing refined analysis:', response, userResponses);
     return { ...original, confidence_score: Math.min(original.confidence_score + 0.1, 1.0) };
   }
 }
