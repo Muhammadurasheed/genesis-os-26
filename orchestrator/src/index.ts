@@ -453,7 +453,254 @@ app.get('/execution/:executionId/metrics', async (req, res) => {
   }
 });
 
-// Canvas layout optimization endpoint
+// Phase 2: Revolutionary Canvas API Endpoints
+
+// AI-Powered Layout Optimization - Surpasses n8n/Figma
+app.post('/api/canvas/optimize-layout', async (req, res) => {
+  try {
+    console.log('🧠 AI Layout Optimization request received - REVOLUTIONARY FEATURE');
+    const { canvasId, nodes, edges, algorithm = 'force_directed' } = req.body;
+    
+    if (!canvasId || !nodes || !Array.isArray(nodes)) {
+      return res.status(400).json({ 
+        error: 'Missing required data',
+        message: 'canvasId and nodes array are required'
+      });
+    }
+    
+    // Revolutionary AI-powered layout optimization
+    const optimization = await revolutionaryCanvasService.optimizeLayoutWithAI(
+      canvasId,
+      nodes,
+      edges || [],
+      algorithm
+    );
+    
+    console.log(`✅ AI Layout Optimization completed: ${optimization.metrics.crossings_reduced} crossings reduced`);
+    
+    return res.status(200).json({ 
+      success: true,
+      optimization,
+      message: 'Revolutionary AI layout optimization completed',
+      algorithm_used: algorithm
+    });
+  } catch (error: any) {
+    console.error('❌ Error in AI Layout Optimization:', error);
+    return res.status(500).json({ 
+      error: 'Failed to optimize layout',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Intelligent Connection Suggestions - Revolutionary AI
+app.post('/api/canvas/suggest-connections', async (req, res) => {
+  try {
+    console.log('🔗 Intelligent Connection Suggestions request received - REVOLUTIONARY FEATURE');
+    const { canvasId, nodes, sourceNodeId, targetPosition } = req.body;
+    
+    if (!canvasId || !nodes || !Array.isArray(nodes)) {
+      return res.status(400).json({ 
+        error: 'Missing required data',
+        message: 'canvasId and nodes array are required'
+      });
+    }
+    
+    // Generate AI-powered connection suggestions
+    const suggestions = await revolutionaryCanvasService.generateConnectionSuggestions(
+      canvasId,
+      nodes,
+      sourceNodeId,
+      targetPosition
+    );
+    
+    console.log(`✅ Generated ${suggestions.length} intelligent connection suggestions`);
+    
+    return res.status(200).json({ 
+      success: true,
+      suggestions,
+      message: 'AI-powered connection suggestions generated',
+      features: ['semantic_analysis', 'workflow_logic', 'type_compatibility']
+    });
+  } catch (error: any) {
+    console.error('❌ Error generating connection suggestions:', error);
+    return res.status(500).json({ 
+      error: 'Failed to generate connection suggestions',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Git-like Version Control - Create Snapshot
+app.post('/api/canvas/create-snapshot', async (req, res) => {
+  try {
+    console.log('📸 Canvas Snapshot Creation request received - GIT-LIKE VERSION CONTROL');
+    const { canvasId, nodes, edges, author, message, tags = [] } = req.body;
+    
+    if (!canvasId || !nodes || !author || !message) {
+      return res.status(400).json({ 
+        error: 'Missing required data',
+        message: 'canvasId, nodes, author, and message are required'
+      });
+    }
+    
+    // Create Git-like snapshot
+    const snapshot = await revolutionaryCanvasService.createSnapshot(
+      canvasId,
+      nodes,
+      edges || [],
+      author,
+      message,
+      tags
+    );
+    
+    console.log(`✅ Canvas snapshot created: ${snapshot.id} (${snapshot.metadata.version})`);
+    
+    return res.status(200).json({ 
+      success: true,
+      snapshot: {
+        id: snapshot.id,
+        version: snapshot.metadata.version,
+        timestamp: snapshot.timestamp,
+        author: snapshot.author,
+        message: snapshot.message,
+        tags: snapshot.metadata.tags
+      },
+      message: 'Git-like canvas snapshot created successfully'
+    });
+  } catch (error: any) {
+    console.error('❌ Error creating canvas snapshot:', error);
+    return res.status(500).json({ 
+      error: 'Failed to create canvas snapshot',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Git-like Version Control - Get Snapshots
+app.get('/api/canvas/:canvasId/snapshots', async (req, res) => {
+  try {
+    console.log('📋 Canvas Snapshots request received - VERSION HISTORY');
+    const { canvasId } = req.params;
+    
+    if (!canvasId) {
+      return res.status(400).json({ 
+        error: 'Missing canvas ID',
+        message: 'Canvas ID is required'
+      });
+    }
+    
+    // Get version history
+    const snapshots = revolutionaryCanvasService.getCanvasSnapshots(canvasId);
+    
+    // Return metadata only for list view
+    const snapshotMetadata = snapshots.map(snapshot => ({
+      id: snapshot.id,
+      version: snapshot.metadata.version,
+      timestamp: snapshot.timestamp,
+      author: snapshot.author,
+      message: snapshot.message,
+      tags: snapshot.metadata.tags,
+      parent_snapshot: snapshot.metadata.parent_snapshot
+    }));
+    
+    console.log(`✅ Retrieved ${snapshots.length} canvas snapshots`);
+    
+    return res.status(200).json({ 
+      success: true,
+      snapshots: snapshotMetadata,
+      total_count: snapshots.length,
+      message: 'Canvas version history retrieved'
+    });
+  } catch (error: any) {
+    console.error('❌ Error retrieving canvas snapshots:', error);
+    return res.status(500).json({ 
+      error: 'Failed to retrieve canvas snapshots',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Git-like Version Control - Restore Snapshot
+app.post('/api/canvas/:canvasId/restore/:snapshotId', async (req, res) => {
+  try {
+    console.log('🔄 Canvas Snapshot Restoration request received - GIT-LIKE RESTORE');
+    const { canvasId, snapshotId } = req.params;
+    
+    if (!canvasId || !snapshotId) {
+      return res.status(400).json({ 
+        error: 'Missing required parameters',
+        message: 'Canvas ID and Snapshot ID are required'
+      });
+    }
+    
+    // Restore from snapshot
+    const snapshot = await revolutionaryCanvasService.restoreSnapshot(canvasId, snapshotId);
+    
+    if (!snapshot) {
+      return res.status(404).json({
+        error: 'Snapshot not found',
+        message: `No snapshot found with ID: ${snapshotId}`
+      });
+    }
+    
+    console.log(`✅ Canvas restored from snapshot: ${snapshot.metadata.version}`);
+    
+    return res.status(200).json({ 
+      success: true,
+      restored_canvas: {
+        nodes: snapshot.nodes,
+        edges: snapshot.edges,
+        version: snapshot.metadata.version,
+        timestamp: snapshot.timestamp
+      },
+      message: 'Canvas successfully restored from snapshot'
+    });
+  } catch (error: any) {
+    console.error('❌ Error restoring canvas snapshot:', error);
+    return res.status(500).json({ 
+      error: 'Failed to restore canvas snapshot',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Enterprise Real-time Collaboration
+app.post('/api/canvas/collaboration-event', async (req, res) => {
+  try {
+    console.log('👥 Collaboration Event received - REAL-TIME COLLABORATION');
+    const { canvasId, type, user_id, data } = req.body;
+    
+    if (!canvasId || !type || !user_id) {
+      return res.status(400).json({ 
+        error: 'Missing required data',
+        message: 'canvasId, type, and user_id are required'
+      });
+    }
+    
+    // Handle collaboration event with conflict resolution
+    await revolutionaryCanvasService.handleCollaborationEvent(canvasId, {
+      type,
+      user_id,
+      data: data || {}
+    });
+    
+    console.log(`✅ Collaboration event processed: ${type} by ${user_id}`);
+    
+    return res.status(200).json({ 
+      success: true,
+      message: 'Collaboration event processed successfully',
+      features: ['conflict_resolution', 'real_time_sync', 'multi_user_support']
+    });
+  } catch (error: any) {
+    console.error('❌ Error processing collaboration event:', error);
+    return res.status(500).json({ 
+      error: 'Failed to process collaboration event',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
 app.post('/optimizeLayout', async (req, res) => {
   try {
     console.log('🎯 Canvas layout optimization request received');
