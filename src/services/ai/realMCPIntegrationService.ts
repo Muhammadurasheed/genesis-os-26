@@ -534,11 +534,9 @@ export class RealMCPIntegrationService {
  * Stdio Transport for MCP servers
  */
 class StdioTransport implements MCPTransport {
-  // TODO: Will be used when actual child process spawning is implemented
-  private _process: any; // Child process placeholder
-  private _messageQueue: MCPMessage[] = [];
-
-  constructor(private _command: string[], private _env: Record<string, string>) {}
+  constructor(private command: string[], private env: Record<string, string>) {
+    console.log('StdioTransport created for command:', command, 'with env vars:', Object.keys(env));
+  }
 
   async send(message: MCPMessage): Promise<void> {
     // Implementation would spawn child process and send via stdin
@@ -567,7 +565,9 @@ class StdioTransport implements MCPTransport {
  * WebSocket Transport for MCP servers
  */
 class WebSocketTransport implements MCPTransport {
-  constructor(private _url: string) {}
+  constructor(private url: string) {
+    console.log('WebSocketTransport created for URL:', url);
+  }
 
   async send(message: MCPMessage): Promise<void> {
     console.log('📤 WebSocket send:', message.method);
@@ -589,7 +589,9 @@ class WebSocketTransport implements MCPTransport {
  * Server-Sent Events Transport for MCP servers
  */
 class SSETransport implements MCPTransport {
-  constructor(private _url: string) {}
+  constructor(private url: string) {
+    console.log('SSETransport created for URL:', url);
+  }
 
   async send(message: MCPMessage): Promise<void> {
     console.log('📤 SSE send:', message.method);

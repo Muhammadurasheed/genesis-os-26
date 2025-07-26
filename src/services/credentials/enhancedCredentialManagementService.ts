@@ -357,20 +357,13 @@ export class EnhancedCredentialManagementService {
     }
 
     // Save to Supabase using Supabase secrets
-    const _credentialSet: Omit<CredentialSet, 'id'> = {
+    console.log(`💾 Storing credentials for ${definition.service}`, {
       user_id: userId,
       definition_id: definitionId,
       service: definition.service,
-      values, // In production, these should be encrypted
       is_valid: testResult?.success ?? true,
-      last_validated: new Date(),
-      created_at: new Date(),
-      updated_at: new Date(),
-      metadata: {
-        test_results: testResult,
-        usage_count: 0
-      }
-    };
+      metadata: { test_results: testResult, usage_count: 0 }
+    });
 
     // Store sensitive values as Supabase secrets
     for (const field of definition.fields) {
@@ -590,7 +583,7 @@ export class EnhancedCredentialManagementService {
    */
   public async updateCredentials(
     credentialId: string,
-    values: Record<string, string>
+    _values: Record<string, string>
   ): Promise<void> {
     console.log(`📝 Updating credentials ${credentialId}`);
     // TODO: Implement actual update in Supabase

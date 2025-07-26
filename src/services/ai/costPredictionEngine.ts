@@ -411,7 +411,7 @@ export class CostPredictionEngine {
    * Generate optimization suggestions
    */
   private async generateOptimizationSuggestions(
-    applications: CostFactorApplication[],
+    _applications: CostFactorApplication[],
     breakdown: CostPrediction['cost_breakdown']
   ): Promise<CostOptimizationSuggestion[]> {
     const suggestions: CostOptimizationSuggestion[] = [];
@@ -590,7 +590,7 @@ export class CostPredictionEngine {
     return (baseConfidence + factorConfidence) / 2;
   }
 
-  private identifyBottlenecks(scaleFactor: number, assumptions: CostPrediction['usage_assumptions']): string[] {
+  private identifyBottlenecks(scaleFactor: number, _assumptions: CostPrediction['usage_assumptions']): string[] {
     const bottlenecks: string[] = [];
 
     if (scaleFactor >= 5) {
@@ -606,7 +606,7 @@ export class CostPredictionEngine {
     return bottlenecks;
   }
 
-  private identifyRequiredUpgrades(scaleFactor: number, assumptions: CostPrediction['usage_assumptions']): string[] {
+  private identifyRequiredUpgrades(scaleFactor: number, _assumptions: CostPrediction['usage_assumptions']): string[] {
     const upgrades: string[] = [];
 
     if (scaleFactor >= 5) {

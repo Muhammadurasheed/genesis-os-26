@@ -731,5 +731,8 @@ interface ValidationWarning {
   code: string;
 }
 
+// Export types for external use
+export type { ConnectionSuggestion, CanvasSnapshot, CanvasAnalytics };
+
 // Singleton instance
 export const revolutionaryCanvasEngine = new RevolutionaryCanvasEngine();
