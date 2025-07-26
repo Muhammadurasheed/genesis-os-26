@@ -57,7 +57,7 @@ export const CredentialManagementDashboard: React.FC<CredentialManagementDashboa
   const loadCredentials = async () => {
     try {
       setIsLoading(true);
-      const data = await credentialManagementService.getWorkspaceCredentials(workspaceId);
+      const data = await credentialManagementService.listCredentials(workspaceId);
       setCredentials(data);
     } catch (error) {
       console.error('Failed to load credentials:', error);
@@ -91,21 +91,13 @@ export const CredentialManagementDashboard: React.FC<CredentialManagementDashboa
     }
 
     try {
-      const success = await credentialManagementService.deleteCredential(credentialId);
-      if (success) {
-        setCredentials(prev => prev.filter(c => c.id !== credentialId));
-        toast({
-          title: 'Deleted',
-          description: 'Credential deleted successfully',
-          variant: 'default'
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete credential',
-          variant: 'destructive'
-        });
-      }
+      await credentialManagementService.deleteCredential(credentialId);
+      setCredentials(prev => prev.filter(c => c.id !== credentialId));
+      toast({
+        title: 'Deleted',
+        description: 'Credential deleted successfully',
+        variant: 'default'
+      });
     } catch (error) {
       console.error('Delete error:', error);
       toast({

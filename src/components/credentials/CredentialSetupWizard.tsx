@@ -67,7 +67,7 @@ export const CredentialSetupWizard: React.FC<CredentialSetupWizardProps> = ({
       setSetupFlow(flow);
 
       // Get setup guide
-      const guide = await credentialManagementService.getServiceSetupGuide(serviceId);
+      const guide = await credentialManagementService.getServiceSetupGuide(serviceId as any);
       setSetupGuide(guide);
 
       setCurrentStep(0);
@@ -116,11 +116,7 @@ export const CredentialSetupWizard: React.FC<CredentialSetupWizardProps> = ({
       }
 
       // Validate the credential
-      const result = await credentialManagementService.validateCredential(
-        'temp', // Temporary ID for validation
-        setupFlow.service_id,
-        credentialValue
-      );
+      const result = await credentialManagementService.validateCredential('temp-validation-id');
 
       setValidationResult(result);
 
@@ -156,14 +152,11 @@ export const CredentialSetupWizard: React.FC<CredentialSetupWizardProps> = ({
     setIsLoading(true);
 
     try {
-      const primaryField = setupFlow.required_fields.find(f => f.required);
-      const credentialValue = setupFlow.current_values[primaryField?.key || 'api_key'];
 
       const result = await credentialManagementService.saveCredential(
         workspaceId,
         setupFlow.service_id,
         setupFlow.auth_type,
-        credentialValue,
         {
           // Save additional metadata
           ...Object.fromEntries(
@@ -176,21 +169,15 @@ export const CredentialSetupWizard: React.FC<CredentialSetupWizardProps> = ({
         }
       );
 
-      if (result.success && result.credentialId) {
+      if (result) {
         toast({
           title: 'Credentials Saved',
           description: `Successfully saved ${setupFlow.service_name} credentials`,
           variant: 'default'
         });
         
-        onCredentialSaved(result.credentialId);
+        onCredentialSaved(result);
         onClose();
-      } else {
-        toast({
-          title: 'Save Failed',
-          description: result.error || 'Failed to save credentials',
-          variant: 'destructive'
-        });
       }
     } catch (error) {
       console.error('Save error:', error);

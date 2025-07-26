@@ -8,8 +8,7 @@ import {
   CheckCircle,
   XCircle,
   Pause,
-  Play,
-  Square
+  Play
 } from 'lucide-react';
 import { GlassCard } from '../ui/GlassCard';
 import { HolographicButton } from '../ui/HolographicButton';
@@ -82,7 +81,7 @@ export const ComprehensiveDebugPanel: React.FC<ComprehensiveDebugPanelProps> = (
   );
 
   return (
-    <GlassCard variant="large" className="p-6">
+    <GlassCard className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <Bug className="w-6 h-6 text-primary" />

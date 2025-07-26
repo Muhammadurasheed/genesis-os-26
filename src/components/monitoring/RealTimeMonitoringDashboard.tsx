@@ -34,7 +34,7 @@ interface RealTimeMonitoringDashboardProps {
   guildId?: string;
 }
 
-export const RealTimeMonitoringDashboard: React.FC<RealTimeMonitoringDashboardProps> = ({ guildId }) => {
+export const RealTimeMonitoringDashboard: React.FC<RealTimeMonitoringDashboardProps> = ({ guildId: _guildId }) => {
   const [metrics, setMetrics] = useState<SystemMetrics>({
     cpu_usage: [],
     memory_usage: [],
@@ -149,7 +149,7 @@ export const RealTimeMonitoringDashboard: React.FC<RealTimeMonitoringDashboardPr
           <div className="text-sm text-gray-300">CPU Usage</div>
         </GlassCard>
 
-        <GlassCard variant="small" className="p-4">
+        <GlassCard className="p-4">
           <div className="flex items-center justify-between mb-2">
             <HardDrive className="w-5 h-5 text-purple-400" />
             <span className={`text-sm ${currentMetrics.memory > 80 ? 'text-red-400' : 'text-green-400'}`}>
@@ -159,7 +159,7 @@ export const RealTimeMonitoringDashboard: React.FC<RealTimeMonitoringDashboardPr
           <div className="text-sm text-gray-300">Memory</div>
         </GlassCard>
 
-        <GlassCard variant="small" className="p-4">
+        <GlassCard className="p-4">
           <div className="flex items-center justify-between mb-2">
             <Users className="w-5 h-5 text-green-400" />
             <span className="text-sm text-white">{Math.floor(currentMetrics.agents)}</span>
@@ -167,7 +167,7 @@ export const RealTimeMonitoringDashboard: React.FC<RealTimeMonitoringDashboardPr
           <div className="text-sm text-gray-300">Active Agents</div>
         </GlassCard>
 
-        <GlassCard variant="small" className="p-4">
+        <GlassCard className="p-4">
           <div className="flex items-center justify-between mb-2">
             <Network className="w-5 h-5 text-yellow-400" />
             <span className="text-sm text-white">{Math.floor(currentMetrics.requests)}/s</span>
@@ -175,7 +175,7 @@ export const RealTimeMonitoringDashboard: React.FC<RealTimeMonitoringDashboardPr
           <div className="text-sm text-gray-300">Requests</div>
         </GlassCard>
 
-        <GlassCard variant="small" className="p-4">
+        <GlassCard className="p-4">
           <div className="flex items-center justify-between mb-2">
             <Zap className="w-5 h-5 text-orange-400" />
             <span className="text-sm text-white">{Math.floor(currentMetrics.responseTime)}ms</span>
@@ -183,7 +183,7 @@ export const RealTimeMonitoringDashboard: React.FC<RealTimeMonitoringDashboardPr
           <div className="text-sm text-gray-300">Response Time</div>
         </GlassCard>
 
-        <GlassCard variant="small" className="p-4">
+        <GlassCard className="p-4">
           <div className="flex items-center justify-between mb-2">
             <AlertTriangle className="w-5 h-5 text-red-400" />
             <span className={`text-sm ${currentMetrics.errorRate > 2 ? 'text-red-400' : 'text-green-400'}`}>

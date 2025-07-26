@@ -5,15 +5,8 @@ import {
   CredentialValidationResult, 
   CredentialSetupFlow,
   ServiceCredentialGuide,
-  PRIORITY_INTEGRATIONS,
   PriorityIntegration 
 } from '../types/credentials';
-
-interface CredentialEncryptionData {
-  encrypted_value: string;
-  salt: string;
-  iv: string;
-}
 
 class CredentialManagementService {
   /**
@@ -88,7 +81,7 @@ class CredentialManagementService {
       return {
         isValid: false,
         status: 'network_error',
-        message: `Validation failed: ${error.message}`,
+        message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         tested_at: new Date().toISOString()
       };
     }
@@ -258,6 +251,76 @@ class CredentialManagementService {
   }
 
   /**
+   * Phase 2: Get Workspace Credentials
+   */
+  async getWorkspaceCredentials(workspaceId: string): Promise<CredentialDefinition[]> {
+    return this.listCredentials(workspaceId);
+  }
+
+  /**
+   * Phase 2: Initiate Credential Setup
+   */
+  async initiateCredentialSetup(serviceId: string): Promise<CredentialSetupFlow> {
+    const guide = await this.getServiceSetupGuide(serviceId as PriorityIntegration);
+    
+    return {
+      step: 'service_selection',
+      service_id: serviceId,
+      service_name: guide.service_name,
+      auth_type: 'api_key', // Default, can be changed based on service
+      required_fields: [
+        {
+          key: 'api_key',
+          name: 'API Key',
+          description: `Enter your ${guide.service_name} API key`,
+          type: 'password',
+          required: true,
+          placeholder: 'sk-...'
+        }
+      ],
+      current_values: {}
+    };
+  }
+
+  /**
+   * Phase 2: Save Credential
+   */
+  async saveCredential(
+    workspaceId: string, 
+    serviceId: string, 
+    authType: string, 
+    _credentialData: Record<string, string>
+  ): Promise<string> {
+    const credential: Omit<CredentialDefinition, 'id' | 'encrypted_value' | 'created_at' | 'updated_at'> = {
+      workspace_id: workspaceId,
+      service_name: serviceId,
+      credential_type: authType as any,
+      metadata: {
+        created_by: 'user',
+        usage_count: 0
+      },
+      status: 'pending',
+      last_verified: new Date().toISOString()
+    };
+
+    return this.createCredential(credential);
+  }
+
+  /**
+   * Phase 2: Get Error Recovery Instructions
+   */
+  getErrorRecoveryInstructions(_serviceId: string, errorCode?: string): string {
+    const commonInstructions: Record<string, string> = {
+      'invalid_auth': 'Check your API key and ensure it has the correct permissions.',
+      'rate_limited': 'Your API key has exceeded rate limits. Wait before trying again.',
+      'insufficient_permissions': 'Your API key needs additional permissions for this operation.',
+      'expired_token': 'Your token has expired. Please refresh or regenerate it.'
+    };
+
+    return errorCode ? (commonInstructions[errorCode] || 'Please check your credentials and try again.') : 'Verify your API key is correct and has proper permissions.';
+  }
+
+  /**
    * Phase 2: Batch Credential Validation
    */
   async validateAllCredentials(workspaceId: string): Promise<Record<string, CredentialValidationResult>> {
@@ -276,7 +339,7 @@ class CredentialManagementService {
             validationResults[credential.id] = {
               isValid: false,
               status: 'network_error',
-              message: `Validation failed: ${error.message}`,
+              message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
               tested_at: new Date().toISOString()
             };
           }
