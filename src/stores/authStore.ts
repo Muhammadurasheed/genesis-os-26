@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../integrations/supabase/client';
 
 interface User {
   id: string;
@@ -38,6 +38,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       initialize: async () => {
         set({ isLoading: true, loading: true });
         try {
+          // Get current session
           const { data: { session } } = await supabase.auth.getSession();
           
           if (session?.user) {
@@ -51,6 +52,28 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
               isAuthenticated: true,
             });
           }
+
+          // Set up auth state listener
+          supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session?.user) {
+              set({
+                user: {
+                  id: session.user.id,
+                  email: session.user.email!,
+                  name: session.user.user_metadata?.name || session.user.email!,
+                  avatar: session.user.user_metadata?.avatar_url,
+                },
+                isAuthenticated: true,
+                emailConfirmationRequired: false,
+              });
+            } else if (event === 'SIGNED_OUT') {
+              set({
+                user: null,
+                isAuthenticated: false,
+                emailConfirmationRequired: false,
+              });
+            }
+          });
         } catch (error) {
           console.error('Initialize auth error:', error);
         } finally {
