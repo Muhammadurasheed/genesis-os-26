@@ -9,13 +9,16 @@ import { QuantumLoader } from './components/ui/QuantumLoader';
 import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard';
 import { MagicalBackground } from './components/ui/MagicalBackground';
 import { getAuthErrorFromURL } from './lib/auth-utils';
+// Import auto-executor to trigger Phase 4 completion
+import './services/phase4AutoExecutor';
 import { MainDashboard } from './components/pages/MainDashboard';
 import { AgentsPage } from './components/pages/AgentsPage';
 import { GuildsPage } from './components/pages/GuildsPage';
 import { MarketplacePage } from './components/pages/MarketplacePage';
+import { Phase4CompletionDashboard } from './components/phase4/Phase4CompletionDashboard';
 
 type AppState = 'landing' | 'auth' | 'app';
-type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics';
+type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics' | 'phase4';
 
 function App() {
   const { user, loading, initialize } = useAuthStore();
@@ -122,6 +125,8 @@ function App() {
         return <EnhancedWizardFlow />;
       case 'analytics':
         return <AnalyticsDashboard guildId="main-guild" />;
+      case 'phase4':
+        return <Phase4CompletionDashboard />;
       default:
         return <MainDashboard />;
     }
