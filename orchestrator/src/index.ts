@@ -21,6 +21,7 @@ import videoService from './services/videoService';
 import communicationService from './services/communicationService';
 import canvasOrchestrationService from './services/canvasOrchestrationService';
 import workflowOrchestrationService from './services/workflowOrchestrationService';
+import simulationOrchestrationService from './services/simulationOrchestrationService';
 
 // Configure rate limiting
 const apiLimiter = rateLimit({
@@ -1046,54 +1047,77 @@ app.post('/generateBlueprint', async (req, res) => {
   }
 });
 
-// Run simulation endpoint
+// Simulation routes - NOW PROPERLY IN ORCHESTRATOR
 app.post('/simulation/run', async (req, res) => {
   try {
-    console.log('🧪 Simulation request received');
+    console.log('🧪 Simulation request received - NOW IN ORCHESTRATOR');
     const config = req.body;
     
     if (!config.guild_id || !config.agents) {
-      return res.status(400).json({ 
-        error: 'Invalid simulation config',
-        message: 'Guild ID and agents are required'
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'guild_id and agents are required'
       });
     }
+
+    // Use simulation orchestration service
+    const results = await simulationOrchestrationService.runSimulation(config);
     
-    try {
-      // Run the simulation
-      const results = await simulationService.runSimulation(config);
-      
-      console.log(`✅ Simulation completed: ${results.id}`);
-      
-      // Return the simulation results
-      return res.json(results);
-    } catch (error: any) {
-      console.error('❌ Error running simulation:', error);
-      return res.status(500).json({ 
-        error: 'Failed to run simulation',
-        message: error.message || 'An unexpected error occurred'
-      });
-    }
+    return res.status(200).json({
+      success: true,
+      message: `Simulation completed for guild ${config.guild_id}`,
+      results
+    });
   } catch (error: any) {
-    console.error('❌ Error in simulation route:', error);
-    return res.status(500).json({ 
-      error: 'Failed to process simulation request',
+    console.error('❌ Error running simulation:', error);
+    return res.status(500).json({
+      error: 'Simulation failed',
       message: error.message || 'An unexpected error occurred'
     });
   }
 });
 
-// Get simulation results endpoint
-app.get('/simulation/:simulationId', async (req, res) => {
+// Advanced simulation endpoint
+app.post('/simulation/advanced', async (req, res) => {
+  try {
+    console.log('🚀 Advanced simulation request received - IN ORCHESTRATOR');
+    const config = req.body;
+    
+    if (!config.guild_id || !config.agents) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'guild_id and agents are required'
+      });
+    }
+
+    // Use advanced simulation with mock services
+    const results = await simulationOrchestrationService.runAdvancedSimulation(config);
+    
+    return res.status(200).json({
+      success: true,
+      message: `Advanced simulation completed for guild ${config.guild_id}`,
+      results
+    });
+  } catch (error: any) {
+    console.error('❌ Error running advanced simulation:', error);
+    return res.status(500).json({
+      error: 'Advanced simulation failed',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Get simulation results endpoint - UPDATED FOR ORCHESTRATOR
+app.get('/simulation/:simulationId/results', async (req, res) => {
   try {
     const { simulationId } = req.params;
     
     if (!simulationId) {
       return res.status(400).json({ error: 'Simulation ID is required' });
     }
-    
-    // Get the simulation results
-    const results = simulationService.getSimulationResults(simulationId);
+
+    // Get results from orchestration service
+    const results = simulationOrchestrationService.getSimulationResults(simulationId);
     
     if (!results) {
       return res.status(404).json({
@@ -1102,12 +1126,15 @@ app.get('/simulation/:simulationId', async (req, res) => {
       });
     }
     
-    res.json(results);
+    res.json({
+      success: true,
+      results
+    });
   } catch (error: any) {
     console.error('❌ Error getting simulation results:', error);
-    res.status(500).json({ 
-      error: error.message || 'Failed to get simulation results',
-      status: 'error'
+    res.status(500).json({
+      error: 'Failed to get simulation results',
+      message: error.message || 'An unexpected error occurred'
     });
   }
 });
