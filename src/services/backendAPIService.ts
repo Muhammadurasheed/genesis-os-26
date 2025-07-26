@@ -372,6 +372,34 @@ class BackendAPIService {
       throw new Error(error.response?.data?.error || 'Failed to validate blueprint');
     }
   }
+
+  // Phase 2: Additional methods
+  async enableVoiceSimulation(simulationId: string, config: any): Promise<APIResponse> {
+    try {
+      const response = await this.agentServiceClient.post(`/api/simulation/${simulationId}/voice`, config);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to enable voice simulation');
+    }
+  }
+
+  async createCredential(credential: any): Promise<APIResponse> {
+    try {
+      const response = await this.orchestratorClient.post('/api/credentials', credential);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to create credential');
+    }
+  }
+
+  async validateCredential(credentialId: string): Promise<APIResponse> {
+    try {
+      const response = await this.orchestratorClient.get(`/api/credentials/${credentialId}/validate`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to validate credential');
+    }
+  }
 }
 
 export const backendAPIService = new BackendAPIService();

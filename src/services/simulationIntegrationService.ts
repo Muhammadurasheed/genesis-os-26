@@ -117,7 +117,18 @@ class SimulationIntegrationService {
     try {
       console.log('🎤 Voice Simulation: Integrating ElevenLabs...');
       
-      // Generate voice interactions
+      // Try backend voice orchestrator first
+      try {
+        const response = await backendAPIService.enableVoiceSimulation(simulationId, config);
+        if (response.success) {
+          console.log('✅ Voice simulation enabled via backend orchestrator');
+          return;
+        }
+      } catch (backendError) {
+        console.warn('Backend voice simulation failed, using edge function fallback:', backendError);
+      }
+      
+      // Fallback to edge function voice synthesis
       const response = await supabase.functions.invoke('voice-synthesis', {
         body: {
           simulation_id: simulationId,
