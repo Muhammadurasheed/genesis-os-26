@@ -31,61 +31,115 @@ interface IntentAnalysisResult {
  */
 export const blueprintService = {
   /**
-   * Master Blueprint: Intent Understanding System
-   * Conversation Flow: User Input → Intent Parser → Clarification Engine → Blueprint Generator
+   * Master Blueprint: Intent Understanding System with Einstein-Level Analysis
+   * Conversation Flow: User Input → Einstein Engine → Clarification Engine → Revolutionary Canvas
    */
   generateBlueprint: async (userInput: string): Promise<Blueprint> => {
     try {
-      console.log('🧠 Master Blueprint Phase 1.2: Generating blueprint from user input:', userInput.substring(0, 50) + '...');
+      console.log('🧠 Master Blueprint: Generating blueprint with Einstein-level analysis...');
       
-      // Try backend API first
-      try {
-        const { backendAPIService } = await import('./backendAPIService');
-        const response = await backendAPIService.generateBlueprint(userInput.trim());
-        if (response.success) {
-          return response.data.blueprint;
-        }
-      } catch (backendError) {
-        console.warn('Backend blueprint generation failed, using fallback:', backendError);
-      }
+      // Use Einstein Intent Engine for deep understanding
+      const { einsteinIntentEngine } = await import('./ai/einsteinIntentEngine');
+      const analysis = await einsteinIntentEngine.analyzeUserIntent(userInput);
       
-      // Fallback to local generation using Gemini
-      return await apiMethods.generateBlueprint(userInput.trim());
+      // Convert Einstein analysis to Blueprint format
+      const blueprint: Blueprint = {
+        id: `blueprint-${Date.now()}`,
+        user_input: userInput,
+        interpretation: analysis.user_intent_summary,
+        suggested_structure: {
+          guild_name: analysis.identified_processes[0]?.name || 'AI-Powered Guild',
+          guild_purpose: analysis.extracted_goals.join(', '),
+          agents: analysis.suggested_agents.map(agent => ({
+            name: agent.name,
+            role: agent.primary_role,
+            description: agent.specialization,
+            tools_needed: agent.required_tools
+          })),
+          workflows: analysis.identified_processes.map(process => ({
+            name: process.name,
+            description: process.description,
+            trigger_type: process.frequency === 'real-time' ? 'webhook' : 'schedule'
+          }))
+        },
+        status: 'draft',
+        created_at: new Date().toISOString(),
+        refinement_count: 0,
+        analysis // Store Einstein analysis for later use
+      };
+      
+      console.log(`✅ Einstein blueprint generated with ${analysis.confidence_score * 100}% confidence`);
+      return blueprint;
     } catch (error) {
-      console.error('Failed to generate blueprint:', error);
-      throw error;
+      console.error('Einstein blueprint generation failed, using fallback:', error);
+      return await apiMethods.generateBlueprint(userInput.trim());
     }
   },
 
   /**
-   * Master Blueprint: Intent Analysis with Clarification Engine
+   * Master Blueprint: Einstein-Level Intent Analysis with Multi-Model Reasoning
    */
   analyzeIntent: async (userInput: string): Promise<IntentAnalysisResult> => {
     try {
-      console.log('🧠 Master Blueprint: Analyzing business intent with Gemini...');
+      console.log('🧠 Master Blueprint: Analyzing intent with Einstein-level intelligence...');
       
-      // Use Gemini for intelligent intent analysis
-      const analysis = await apiMethods.analyzeBusinessIntent(userInput);
-      return analysis;
+      // Use Einstein Intent Engine for deep analysis
+      const { einsteinIntentEngine } = await import('./ai/einsteinIntentEngine');
+      const einsteinAnalysis = await einsteinIntentEngine.analyzeUserIntent(userInput);
+      
+      // Convert to legacy format for compatibility
+      return {
+        extracted_goals: einsteinAnalysis.extracted_goals,
+        identified_processes: einsteinAnalysis.identified_processes.map(process => ({
+          name: process.name,
+          description: process.description,
+          inputs: process.data_sources,
+          outputs: process.outputs,
+          frequency: process.frequency,
+          complexity: process.complexity_score > 6 ? 'complex' : process.complexity_score > 3 ? 'moderate' : 'simple'
+        })),
+        suggested_agents: einsteinAnalysis.suggested_agents.map(agent => ({
+          name: agent.name,
+          role: agent.primary_role,
+          description: agent.specialization,
+          tools_needed: agent.required_tools
+        })),
+        clarification_questions: einsteinAnalysis.clarification_questions.map(q => q.question),
+        complexity_score: einsteinAnalysis.complexity_assessment.overall_score,
+        estimated_cost: einsteinAnalysis.cost_prediction.estimated_monthly_cost,
+        confidence_score: einsteinAnalysis.confidence_score
+      };
     } catch (error) {
-      console.error('Intent analysis failed, using fallback:', error);
-      // Enhanced fallback analysis
+      console.error('Einstein intent analysis failed, using fallback:', error);
       return blueprintService.createFallbackIntentAnalysis(userInput);
     }
   },
 
   /**
-   * Master Blueprint: Interactive Clarification System
+   * Master Blueprint: Einstein-Powered Clarification System
    */
   askClarificationQuestions: async (intent: IntentAnalysisResult, userResponses: Record<string, string>): Promise<string[]> => {
     try {
-      console.log('🤔 Master Blueprint: Generating intelligent clarification questions with Gemini...');
+      console.log('🤔 Master Blueprint: Generating Einstein-level clarification questions...');
       
-      // Use Gemini to generate contextual questions
-      const questions = await apiMethods.generateClarificationQuestions(intent, userResponses);
-      return questions;
+      // Use Einstein Engine for intelligent questions
+      const { einsteinIntentEngine } = await import('./ai/einsteinIntentEngine');
+      
+      // Convert legacy intent to Einstein analysis format for processing
+      const mockAnalysis = {
+        extracted_goals: intent.extracted_goals,
+        clarification_questions: intent.clarification_questions.map(q => ({
+          question: q,
+          purpose: 'Clarify requirements',
+          impact_if_unclear: 'medium' as const
+        })),
+        confidence_score: intent.confidence_score || 0.7
+      } as any;
+      
+      const questions = await einsteinIntentEngine.generateClarificationQuestions(mockAnalysis, userResponses);
+      return questions.map(q => q.question);
     } catch (error) {
-      console.error('Clarification generation failed, using fallback:', error);
+      console.error('Einstein clarification generation failed, using fallback:', error);
       
       const remainingQuestions = intent.clarification_questions.filter(
         question => !Object.keys(userResponses).some(response => question.toLowerCase().includes(response.toLowerCase()))
