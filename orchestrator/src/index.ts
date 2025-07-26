@@ -19,6 +19,8 @@ import analyticsService from './services/analyticsService';
 import voiceService from './services/voiceService';
 import videoService from './services/videoService';
 import communicationService from './services/communicationService';
+import canvasOrchestrationService from './services/canvasOrchestrationService';
+import workflowOrchestrationService from './services/workflowOrchestrationService';
 
 // Configure rate limiting
 const apiLimiter = rateLimit({
@@ -181,46 +183,35 @@ app.get('/status', async (req, res) => {
   }
 });
 
-// Blueprint to Canvas generation endpoint
+// Canvas generation endpoint - NOW PROPERLY IN ORCHESTRATOR
 app.post('/generateCanvas', async (req, res) => {
   try {
-    console.log('🎨 Canvas generation request received');
-    const blueprint = req.body.blueprint;
+    console.log('🎨 Canvas generation request received - NOW IN ORCHESTRATOR');
+    const { blueprint, options } = req.body;
     
-    try {
-      // Validate blueprint
-      if (!blueprint) {
-        return res.status(400).json({ 
-          error: 'Missing blueprint',
-          message: 'Blueprint data is required'
-        });
-      }
-      
-      if (!blueprint.suggested_structure) {
-        return res.status(400).json({ 
-          error: 'Invalid blueprint structure',
-          message: 'Blueprint must include suggested_structure'
-        });
-      }
-
-      // Generate canvas nodes and edges using the blueprint service
-      const { nodes, edges } = blueprintService.generateCanvasFromBlueprint(blueprint);
-    
-      console.log(`✅ Generated canvas with ${nodes.length} nodes and ${edges.length} edges`);
-    
-      return res.status(200).json({ 
-        success: true,
-        nodes,
-        edges,
-        message: 'Canvas generated successfully'
-      });
-    } catch (error: any) {
-      console.error('❌ Error generating canvas:', error);
-      return res.status(500).json({ 
-        error: 'Failed to generate canvas',
-        message: error.message || 'An unexpected error occurred'
+    // Validate blueprint
+    if (!blueprint) {
+      return res.status(400).json({ 
+        error: 'Missing blueprint',
+        message: 'Blueprint data is required'
       });
     }
+    
+    if (!blueprint.suggested_structure) {
+      return res.status(400).json({ 
+        error: 'Invalid blueprint structure',
+        message: 'Blueprint must include suggested_structure'
+      });
+    }
+
+    // Use canvas orchestration service (moved from FastAPI)
+    const canvasData = canvasOrchestrationService.generateCanvasFromBlueprint(blueprint, options);
+  
+    return res.status(200).json({ 
+      success: true,
+      ...canvasData,
+      message: 'Canvas generated successfully'
+    });
   } catch (error: any) {
     console.error('❌ Error generating canvas:', error);
     return res.status(500).json({ 
@@ -230,53 +221,35 @@ app.post('/generateCanvas', async (req, res) => {
   }
 });
 
-// Enterprise Canvas generation endpoint
+// Enterprise Canvas generation endpoint - ENHANCED IN ORCHESTRATOR
 app.post('/generateEnterpriseCanvas', async (req, res) => {
   try {
-    console.log('🏢 Enterprise Canvas generation request received');
+    console.log('🏢 Enterprise Canvas generation request received - IN ORCHESTRATOR');
     const { blueprint, options } = req.body;
     
-    try {
-      // Validate blueprint
-      if (!blueprint) {
-        return res.status(400).json({ 
-          error: 'Missing blueprint',
-          message: 'Blueprint data is required'
-        });
-      }
-      
-      if (!blueprint.suggested_structure) {
-        return res.status(400).json({ 
-          error: 'Invalid blueprint structure',
-          message: 'Blueprint must include suggested_structure'
-        });
-      }
-
-      // Generate enterprise canvas with enhanced features
-      const { nodes, edges } = blueprintService.generateEnterpriseCanvasFromBlueprint(blueprint, options);
-    
-      console.log(`✅ Generated enterprise canvas with ${nodes.length} nodes and ${edges.length} edges`);
-    
-      return res.status(200).json({ 
-        success: true,
-        nodes,
-        edges,
-        message: 'Enterprise canvas generated successfully',
-        metadata: {
-          blueprint_id: blueprint.id,
-          generation_time: new Date().toISOString(),
-          layout: options?.layout || 'hierarchical',
-          optimization: options?.optimization || 'performance',
-          visualization: options?.visualization || 'professional'
-        }
-      });
-    } catch (error: any) {
-      console.error('❌ Error generating enterprise canvas:', error);
-      return res.status(500).json({ 
-        error: 'Failed to generate enterprise canvas',
-        message: error.message || 'An unexpected error occurred'
+    // Validate blueprint
+    if (!blueprint) {
+      return res.status(400).json({ 
+        error: 'Missing blueprint',
+        message: 'Blueprint data is required'
       });
     }
+    
+    if (!blueprint.suggested_structure) {
+      return res.status(400).json({ 
+        error: 'Invalid blueprint structure',
+        message: 'Blueprint must include suggested_structure'
+      });
+    }
+
+    // Use canvas orchestration service for enterprise features
+    const canvasData = canvasOrchestrationService.generateEnterpriseCanvas(blueprint, options);
+  
+    return res.status(200).json({ 
+      success: true,
+      ...canvasData,
+      message: 'Enterprise canvas generated successfully'
+    });
   } catch (error: any) {
     console.error('❌ Error generating enterprise canvas:', error);
     return res.status(500).json({ 
@@ -286,10 +259,10 @@ app.post('/generateEnterpriseCanvas', async (req, res) => {
   }
 });
 
-// Enterprise Workflow execution endpoint
+// Enterprise Workflow execution endpoint - ENHANCED IN ORCHESTRATOR
 app.post('/executeEnterpriseFlow', async (req, res) => {
   try {
-    console.log('🏢 Enterprise workflow execution request received');
+    console.log('🏢 Enterprise workflow execution request received - IN ORCHESTRATOR');
     const { flowId, nodes, edges, context = {}, enableMonitoring, enableAnalytics }: {
       flowId?: string;
       nodes: WorkflowNode[];
@@ -305,25 +278,15 @@ app.post('/executeEnterpriseFlow', async (req, res) => {
     }
 
     const executionId = flowId || `enterprise-flow-${uuidv4()}`;
-    console.log(`🏢 Starting enterprise flow execution: ${executionId} with ${nodes.length} nodes`);
     
-    // Enhanced context for enterprise execution
-    const enterpriseContext = {
-      ...context,
-      execution_tier: 'enterprise',
-      monitoring_enabled: enableMonitoring || true,
-      analytics_enabled: enableAnalytics || true,
-      sla_tier: 'premium',
-      compliance_mode: 'full',
-      timestamp: new Date().toISOString()
-    };
-    
-    // Execute the workflow using the workflow service with enterprise features
-    const result = await workflowService.executeWorkflow(
+    // Use workflow orchestration service for enterprise execution
+    const result = await workflowOrchestrationService.executeEnterpriseWorkflow(
       executionId,
       nodes,
       edges,
-      enterpriseContext
+      context,
+      enableMonitoring || true,
+      enableAnalytics || true
     );
     
     console.log(`✅ Enterprise execution started: ${result.executionId}`);
@@ -351,7 +314,7 @@ app.post('/executeEnterpriseFlow', async (req, res) => {
   }
 });
 
-// Enterprise workflow metrics endpoint
+// Enterprise workflow metrics endpoint - ENHANCED IN ORCHESTRATOR
 app.get('/execution/:executionId/metrics', async (req, res) => {
   try {
     const { executionId } = req.params;
@@ -360,8 +323,8 @@ app.get('/execution/:executionId/metrics', async (req, res) => {
       return res.status(400).json({ error: 'Execution ID is required' });
     }
 
-    // Get enhanced execution metrics
-    const executionStatus = workflowService.getExecutionStatus(executionId);
+    // Get execution status from orchestration service
+    const executionStatus = workflowOrchestrationService.getExecutionStatus(executionId);
     
     if (!executionStatus) {
       return res.status(404).json({
@@ -370,32 +333,21 @@ app.get('/execution/:executionId/metrics', async (req, res) => {
       });
     }
     
-    // Add enterprise-grade metrics
-    const enterpriseMetrics = {
-      ...executionStatus,
-      performance: {
-        throughput: Math.floor(Math.random() * 1000 + 500), // 500-1500 ops/min
-        latency_p95: Math.random() * 100 + 50, // 50-150ms
-        error_rate: Math.random() * 0.01, // 0-1%
-        uptime: 99.5 + Math.random() * 0.5 // 99.5-100%
-      },
-      sla: {
-        target_uptime: 99.9,
-        current_uptime: 99.5 + Math.random() * 0.5,
-        response_time_sla: 200, // ms
-        current_response_time: Math.random() * 100 + 50
-      },
-      compliance: {
-        data_residency: 'compliant',
-        audit_trail: 'enabled',
-        encryption: 'AES-256',
-        access_controls: 'RBAC'
-      }
-    };
+    // Get enterprise metrics if available
+    const enterpriseMetrics = workflowOrchestrationService.getEnterpriseMetrics(executionId);
     
-    res.json(enterpriseMetrics);
+    const response = enterpriseMetrics ? {
+      ...executionStatus,
+      ...enterpriseMetrics
+    } : executionStatus;
+    
+    res.json(response);
   } catch (error: any) {
-    handleApiError(res, error, 'Failed to get execution metrics');
+    console.error('❌ Error getting execution metrics:', error);
+    res.status(500).json({
+      error: 'Failed to get execution metrics',
+      message: error.message || 'An unexpected error occurred'
+    });
   }
 });
 
