@@ -26,11 +26,13 @@ import {
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/Card';
 import { Badge } from '../ui/badge';
+import { BackendStatus } from '../ui/BackendStatus';
 import { useToast } from '../ui/use-toast';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { NodeData, CanvasEdge } from '../../types/canvas';
+import { canvasIntegrationService } from '../../services/canvasIntegrationService';
 import ActionNode from './nodes/ActionNode';
 import ConditionNode from './nodes/ConditionNode';
 import { IntegrationNode } from './nodes/IntegrationNode';
@@ -319,6 +321,10 @@ export function EnterpriseQuantumCanvas({
                   <p className="text-xs text-muted-foreground">Enterprise AI Workflow Designer</p>
                 </div>
               </div>
+              
+              {/* Backend Status Integration */}
+              <BackendStatus />
+              
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Bot className="w-4 h-4" />
@@ -378,7 +384,27 @@ export function EnterpriseQuantumCanvas({
           </Button>
           <Button 
             size="sm" 
-            onClick={onRunSimulation}
+            onClick={async () => {
+              try {
+                console.log('🚀 Phase 1: Canvas-to-Execution Pipeline Test');
+                const safeNodes = nodes.map(n => ({ ...n, type: n.type || 'default' }));
+                const result = await canvasIntegrationService.convertCanvasToWorkflow(safeNodes, edges);
+                console.log('✅ Canvas converted to workflow:', result);
+                onRunSimulation();
+                toast({
+                  title: "Simulation Launched",
+                  description: `Workflow ${result.workflow_id} execution started`,
+                });
+              } catch (error) {
+                console.error('Canvas execution failed:', error);
+                toast({
+                  title: "Simulation Failed", 
+                  description: "Using fallback simulation mode",
+                  variant: "destructive"
+                });
+                onRunSimulation(); // Still proceed with fallback
+              }
+            }}
             className="bg-gradient-to-r from-primary to-primary/80"
           >
             <Play className="w-4 h-4 mr-2" />

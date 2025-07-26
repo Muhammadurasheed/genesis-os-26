@@ -38,7 +38,18 @@ export const blueprintService = {
     try {
       console.log('🧠 Master Blueprint Phase 1.2: Generating blueprint from user input:', userInput.substring(0, 50) + '...');
       
-      // Use Gemini for dynamic blueprint generation (no Claude API available)
+      // Try backend API first
+      try {
+        const { backendAPIService } = await import('./backendAPIService');
+        const response = await backendAPIService.generateBlueprint(userInput.trim());
+        if (response.success) {
+          return response.data.blueprint;
+        }
+      } catch (backendError) {
+        console.warn('Backend blueprint generation failed, using fallback:', backendError);
+      }
+      
+      // Fallback to local generation using Gemini
       return await apiMethods.generateBlueprint(userInput.trim());
     } catch (error) {
       console.error('Failed to generate blueprint:', error);

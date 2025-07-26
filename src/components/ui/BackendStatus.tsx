@@ -1,85 +1,77 @@
-
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, AlertTriangle, Clock } from 'lucide-react';
-import { GlassCard } from './GlassCard';
+import React, { useEffect, useState } from 'react';
+import { Badge } from './badge';
+import { AlertCircle, CheckCircle, WifiOff } from 'lucide-react';
+import { backendAPIService } from '../../services/backendAPIService';
 
 interface BackendStatusProps {
-  url: string;
+  className?: string;
 }
 
-export const BackendStatus: React.FC<BackendStatusProps> = ({ url }) => {
-  const [status, setStatus] = useState<'loading' | 'online' | 'offline' | 'error'>('loading');
+interface ServiceStatus {
+  orchestrator: boolean;
+  agentService: boolean;
+  lastCheck: string;
+}
+
+export const BackendStatus: React.FC<BackendStatusProps> = ({ 
+  className = '' 
+}) => {
+  const [status, setStatus] = useState<ServiceStatus>({
+    orchestrator: false,
+    agentService: false,
+    lastCheck: ''
+  });
+
+  const checkServices = async () => {
+    try {
+      const [orchestratorHealth, agentHealth] = await Promise.all([
+        backendAPIService.checkOrchestratorHealth(),
+        backendAPIService.checkAgentServiceHealth()
+      ]);
+
+      setStatus({
+        orchestrator: orchestratorHealth,
+        agentService: agentHealth,
+        lastCheck: new Date().toLocaleTimeString()
+      });
+    } catch (error) {
+      console.error('Health check failed:', error);
+      setStatus(prev => ({
+        ...prev,
+        orchestrator: false,
+        agentService: false,
+        lastCheck: new Date().toLocaleTimeString()
+      }));
+    }
+  };
 
   useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const response = await fetch(url);
-        if (response.ok) {
-          setStatus('online');
-        } else {
-          setStatus('offline');
-        }
-      } catch (error) {
-        setStatus('error');
-      }
-    };
+    checkServices();
+    const interval = setInterval(checkServices, 15000); // Check every 15 seconds
+    return () => clearInterval(interval);
+  }, []);
 
-    checkStatus();
-    const intervalId = setInterval(checkStatus, 15000);
-
-    return () => clearInterval(intervalId);
-  }, [url]);
-
-  let statusDisplay;
-  let colorClass;
-
-  switch (status) {
-    case 'loading':
-      statusDisplay = 'Loading...';
-      colorClass = 'text-gray-400';
-      break;
-    case 'online':
-      statusDisplay = 'Online';
-      colorClass = 'text-green-400';
-      break;
-    case 'offline':
-      statusDisplay = 'Offline';
-      colorClass = 'text-yellow-400';
-      break;
-    case 'error':
-      statusDisplay = 'Error';
-      colorClass = 'text-red-400';
-      break;
-    default:
-      statusDisplay = 'Unknown';
-      colorClass = 'text-gray-400';
-  }
-
-  let icon;
-
-  switch (status) {
-    case 'loading':
-      icon = <Clock className="w-4 h-4 mr-2 animate-spin" />;
-      break;
-    case 'online':
-      icon = <CheckCircle className="w-4 h-4 mr-2" />;
-      break;
-    case 'offline':
-      icon = <AlertTriangle className="w-4 h-4 mr-2" />;
-      break;
-    case 'error':
-      icon = <XCircle className="w-4 h-4 mr-2" />;
-      break;
-    default:
-      icon = null;
-  }
+  const isAllHealthy = status.orchestrator && status.agentService;
+  const isPartiallyHealthy = status.orchestrator || status.agentService;
 
   return (
-    <GlassCard variant="medium" className="p-3">
-      <div className="flex items-center">
-        {icon}
-        <span className={`${colorClass} text-sm`}>{statusDisplay}</span>
-      </div>
-    </GlassCard>
+    <div className={`flex items-center gap-2 ${className}`}>
+      {isAllHealthy ? (
+        <Badge variant="default" className="bg-green-600">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Backend Online
+        </Badge>
+      ) : isPartiallyHealthy ? (
+        <Badge variant="secondary" className="bg-yellow-600">
+          <AlertCircle className="w-3 h-3 mr-1" />
+          Partial Service
+        </Badge>
+      ) : (
+        <Badge variant="destructive">
+          <WifiOff className="w-3 h-3 mr-1" />
+          Backend Offline
+        </Badge>
+      )}
+    </div>
   );
 };

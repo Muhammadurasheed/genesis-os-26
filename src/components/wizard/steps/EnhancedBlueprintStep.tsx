@@ -8,12 +8,14 @@ import {
   ArrowRight,
   Target,
   Lightbulb,
-  Cpu
+  Cpu,
+  AlertTriangle
 } from 'lucide-react';
 import { useWizardStore } from '../../../stores/wizardStore';
 import { GlassCard } from '../../ui/GlassCard';
 import { HolographicButton } from '../../ui/HolographicButton';
 import { QuantumLoader } from '../../ui/QuantumLoader';
+import { BackendStatus } from '../../ui/BackendStatus';
 import { blueprintService } from '../../../services/blueprintService';
 import { toast } from 'sonner';
 
@@ -28,6 +30,7 @@ export const EnhancedBlueprintStep: React.FC = () => {
   } = useWizardStore();
 
   const [enhancedBlueprint, setEnhancedBlueprint] = useState<any>(null);
+  const [generationMethod, setGenerationMethod] = useState<'backend' | 'fallback' | null>(null);
 
   useEffect(() => {
     if (user_input && !enhancedBlueprint) {
@@ -37,16 +40,25 @@ export const EnhancedBlueprintStep: React.FC = () => {
 
   const generateEnhancedBlueprint = async () => {
     try {
+      console.log('🧠 Phase 1: Blueprint Engine Integration Test');
       const response = await blueprintService.generateBlueprint(user_input);
       
       if (response) {
         setEnhancedBlueprint(response);
         setBlueprint(response);
-        toast.success('Enhanced blueprint generated successfully!');
+        setGenerationMethod('backend');
+        toast.success('✅ Enhanced blueprint generated via backend!');
       }
     } catch (error: any) {
-      addError('Failed to generate enhanced blueprint');
-      toast.error('Failed to generate enhanced blueprint');
+      console.error('Blueprint generation error:', error);
+      setGenerationMethod('fallback');
+      addError('Backend blueprint generation failed, using fallback');
+      toast.error('⚠️ Using fallback blueprint generation');
+      
+      // Create fallback blueprint
+      const fallbackBlueprint = blueprintService.createSampleBlueprint(user_input);
+      setEnhancedBlueprint(fallbackBlueprint);
+      setBlueprint(fallbackBlueprint);
     }
   };
 
@@ -86,6 +98,26 @@ export const EnhancedBlueprintStep: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12"
       >
+        {/* Backend Status Indicator */}
+        <div className="mb-6">
+          <BackendStatus />
+          {generationMethod && (
+            <div className="mt-2 flex items-center justify-center gap-2">
+              {generationMethod === 'backend' ? (
+                <div className="flex items-center gap-1 text-green-400 text-sm">
+                  <CheckCircle className="w-4 h-4" />
+                  Generated via Backend Orchestrator
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-yellow-400 text-sm">
+                  <AlertTriangle className="w-4 h-4" />
+                  Generated via Fallback System
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="flex items-center justify-center mb-6">
           <CheckCircle className="w-12 h-12 text-green-400 mr-4" />
           <div>
@@ -93,7 +125,7 @@ export const EnhancedBlueprintStep: React.FC = () => {
               Enhanced Blueprint Generated
             </h1>
             <p className="text-gray-300 text-lg mt-2">
-              {enhancedBlueprint.agent_architecture?.guild_name || 'Your Custom Guild'}
+              {enhancedBlueprint.agent_architecture?.guild_name || enhancedBlueprint.suggested_structure?.guild_name || 'Your Custom Guild'}
             </p>
           </div>
         </div>

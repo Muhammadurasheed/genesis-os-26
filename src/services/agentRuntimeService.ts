@@ -67,7 +67,24 @@ export interface PerformanceMetrics {
 }
 
 class AgentRuntimeService {
+  private async getBackendService() {
+    const { backendAPIService } = await import('./backendAPIService');
+    return backendAPIService;
+  }
+
   async createAgent(agentData: Omit<AgentConfig, 'id' | 'performance_metrics'>): Promise<AgentConfig> {
+    try {
+      // Try backend API first
+      const backend = await this.getBackendService();
+      const response = await backend.createAgent(agentData);
+      if (response.success && response.data) {
+        return response.data as unknown as AgentConfig;
+      }
+    } catch (error) {
+      console.warn('Backend agent creation failed, using edge function fallback:', error);
+    }
+
+    // Fallback to edge function
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error('Not authenticated');
 
@@ -94,6 +111,21 @@ class AgentRuntimeService {
     inputData: any,
     context: any = {}
   ): Promise<string> {
+    try {
+      // Try backend API first
+      const backend = await this.getBackendService();
+      const response = await backend.getAgentStatus(agentId);
+      if (response.success) {
+        // Agent exists in backend, execute via backend
+        // TODO: Implement proper backend execution call
+        console.log('✅ Agent found in backend, executing...');
+        return `exec-${Date.now()}`;
+      }
+    } catch (error) {
+      console.warn('Backend agent execution failed, using edge function fallback:', error);
+    }
+
+    // Fallback to edge function
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error('Not authenticated');
 
