@@ -22,6 +22,8 @@ import communicationService from './services/communicationService';
 import canvasOrchestrationService from './services/canvasOrchestrationService';
 import workflowOrchestrationService from './services/workflowOrchestrationService';
 import simulationOrchestrationService from './services/simulationOrchestrationService';
+import intentUnderstandingEngine from './services/intentUnderstandingEngine';
+import clarificationEngine from './services/clarificationEngine';
 
 // Configure rate limiting
 const apiLimiter = rateLimit({
@@ -1139,6 +1141,258 @@ app.get('/simulation/:simulationId/results', async (req, res) => {
   }
 });
 
+// =================== INTENT UNDERSTANDING ENDPOINTS ===================
+
+// Analyze initial intent - PHASE 1 OF INTENT SYSTEM
+app.post('/intent/analyze', async (req, res) => {
+  try {
+    console.log('🧠 Intent analysis request received - FAANG-LEVEL ENGINE');
+    const { user_id, workspace_id, raw_description } = req.body;
+    
+    if (!user_id || !workspace_id || !raw_description) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'user_id, workspace_id, and raw_description are required'
+      });
+    }
+
+    // Use intent understanding engine for Socrates-level analysis
+    const businessIntent = await intentUnderstandingEngine.analyzeInitialIntent(
+      user_id,
+      workspace_id,
+      raw_description
+    );
+    
+    return res.status(200).json({
+      success: true,
+      intent: businessIntent,
+      message: `Intent analyzed with ${(businessIntent.confidence_score * 100).toFixed(1)}% confidence`
+    });
+  } catch (error: any) {
+    console.error('❌ Error analyzing intent:', error);
+    return res.status(500).json({
+      error: 'Intent analysis failed',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Start clarification session - INTERACTIVE Q&A SYSTEM
+app.post('/intent/:intentId/clarify', async (req, res) => {
+  try {
+    console.log('🤔 Clarification session start request received');
+    const { intentId } = req.params;
+    const { strategy } = req.body;
+    
+    if (!intentId) {
+      return res.status(400).json({ error: 'Intent ID is required' });
+    }
+
+    // Get the intent
+    const intent = intentUnderstandingEngine.getIntent(intentId);
+    if (!intent) {
+      return res.status(404).json({
+        error: 'Intent not found',
+        message: `No intent found with ID: ${intentId}`
+      });
+    }
+
+    // Start clarification session
+    const session = await clarificationEngine.startClarificationSession(intent, strategy);
+    
+    // Get first question
+    const firstQuestion = clarificationEngine.getNextQuestion(session.id);
+    
+    return res.status(200).json({
+      success: true,
+      session: {
+        id: session.id,
+        status: session.status,
+        completion_percentage: session.completion_percentage,
+        estimated_remaining_time: session.estimated_remaining_time
+      },
+      current_question: firstQuestion,
+      message: 'Clarification session started successfully'
+    });
+  } catch (error: any) {
+    console.error('❌ Error starting clarification session:', error);
+    return res.status(500).json({
+      error: 'Failed to start clarification session',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Submit clarification response - ADAPTIVE QUESTIONING
+app.post('/clarification/:sessionId/respond', async (req, res) => {
+  try {
+    console.log('💬 Clarification response received');
+    const { sessionId } = req.params;
+    const { question_id, answer, confidence } = req.body;
+    
+    if (!sessionId || !question_id || answer === undefined) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'sessionId, question_id, and answer are required'
+      });
+    }
+
+    // Process the response
+    const result = await clarificationEngine.processResponse(
+      sessionId,
+      question_id,
+      answer,
+      confidence || 0.8
+    );
+    
+    return res.status(200).json({
+      success: true,
+      ...result,
+      message: result.next_question ? 'Response processed, next question ready' : 'Session completed'
+    });
+  } catch (error: any) {
+    console.error('❌ Error processing clarification response:', error);
+    return res.status(500).json({
+      error: 'Failed to process response',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Get clarification session summary - COMPREHENSIVE ANALYSIS
+app.get('/clarification/:sessionId/summary', async (req, res) => {
+  try {
+    console.log('📊 Clarification session summary requested');
+    const { sessionId } = req.params;
+    
+    if (!sessionId) {
+      return res.status(400).json({ error: 'Session ID is required' });
+    }
+
+    // Get comprehensive summary
+    const summary = clarificationEngine.getSessionSummary(sessionId);
+    
+    if (!summary) {
+      return res.status(404).json({
+        error: 'Session not found',
+        message: `No clarification session found with ID: ${sessionId}`
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      ...summary,
+      message: 'Session summary generated successfully'
+    });
+  } catch (error: any) {
+    console.error('❌ Error getting session summary:', error);
+    return res.status(500).json({
+      error: 'Failed to get session summary',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Finalize intent with clarification responses - INTENT REFINEMENT
+app.post('/intent/:intentId/finalize', async (req, res) => {
+  try {
+    console.log('🎯 Intent finalization requested');
+    const { intentId } = req.params;
+    const { session_id, responses } = req.body;
+    
+    if (!intentId || !session_id || !responses) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'intentId, session_id, and responses are required'
+      });
+    }
+
+    // Analyze responses and refine intent
+    const refinedIntent = await intentUnderstandingEngine.analyzeResponses(intentId, responses);
+    
+    // Get updated intent
+    const updatedIntent = intentUnderstandingEngine.getIntent(intentId);
+    
+    return res.status(200).json({
+      success: true,
+      intent: updatedIntent,
+      refined_intent: refinedIntent,
+      message: `Intent refined with ${(refinedIntent.final_confidence_score * 100).toFixed(1)}% confidence`
+    });
+  } catch (error: any) {
+    console.error('❌ Error finalizing intent:', error);
+    return res.status(500).json({
+      error: 'Intent finalization failed',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// Get intent details
+app.get('/intent/:intentId', async (req, res) => {
+  try {
+    const { intentId } = req.params;
+    
+    if (!intentId) {
+      return res.status(400).json({ error: 'Intent ID is required' });
+    }
+
+    const intent = intentUnderstandingEngine.getIntent(intentId);
+    
+    if (!intent) {
+      return res.status(404).json({
+        error: 'Intent not found',
+        message: `No intent found with ID: ${intentId}`
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      intent,
+      message: 'Intent retrieved successfully'
+    });
+  } catch (error: any) {
+    console.error('❌ Error getting intent:', error);
+    return res.status(500).json({
+      error: 'Failed to get intent',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
+// List user intents
+app.get('/user/:userId/intents', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { workspace_id } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Get all intents and filter by user
+    const allIntents = intentUnderstandingEngine.getAllIntents();
+    const userIntents = allIntents.filter(intent => {
+      const matchesUser = intent.user_id === userId;
+      const matchesWorkspace = !workspace_id || intent.workspace_id === workspace_id;
+      return matchesUser && matchesWorkspace;
+    });
+    
+    return res.status(200).json({
+      success: true,
+      intents: userIntents,
+      count: userIntents.length,
+      message: `Found ${userIntents.length} intents for user`
+    });
+  } catch (error: any) {
+    console.error('❌ Error getting user intents:', error);
+    return res.status(500).json({
+      error: 'Failed to get user intents',
+      message: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
 // Centralized error handling for API endpoints
 function handleApiError(res: express.Response, error: any, defaultMessage: string) {
   console.error(`❌ API Error: ${error}`);
@@ -1194,19 +1448,56 @@ app.post('/webhook', async (req, res) => {
 app.listen(PORT, async () => {
   await initializeClients();
   console.log(`🚀 GenesisOS Orchestrator ready at http://localhost:${PORT}`);
+  console.log(`🧠 Intent Understanding Engine: FAANG-LEVEL EXCELLENCE ACTIVE`);
+  console.log(`🤔 Clarification Engine: SOCRATIC QUESTIONING READY`);
   console.log(`📋 API Endpoints available:
-  - POST /generateBlueprint
+  
+  🧠 INTENT UNDERSTANDING (NEW - PHASE 2):
+  - POST /intent/analyze                    (Analyze user intent)
+  - POST /intent/:intentId/clarify          (Start clarification session)
+  - POST /clarification/:sessionId/respond  (Submit clarification response)
+  - GET  /clarification/:sessionId/summary  (Get session summary)
+  - POST /intent/:intentId/finalize         (Finalize intent)
+  - GET  /intent/:intentId                  (Get intent details)
+  - GET  /user/:userId/intents              (List user intents)
+  
+  🎨 CANVAS ORCHESTRATION:
   - POST /generateCanvas
-  - POST /generateEnterpriseCanvas (NEW)
+  - POST /generateEnterpriseCanvas
+  - POST /optimizeLayout
+  
+  🔄 WORKFLOW ORCHESTRATION:
   - POST /executeFlow
-  - POST /executeEnterpriseFlow (NEW)
-  - GET /execution/:executionId
-  - GET /execution/:executionId/metrics (NEW)
-  - POST /optimizeLayout (NEW)
-  - POST /agentDispatch
+  - POST /executeEnterpriseFlow
+  - GET  /execution/:executionId
+  - GET  /execution/:executionId/metrics
+  
+  🧪 SIMULATION ORCHESTRATION:
   - POST /simulation/run
-  - GET /simulation/:simulationId
-  - POST /webhook
+  - POST /simulation/advanced
+  - GET  /simulation/:simulationId/results
+  
+  📊 ANALYTICS & MONITORING:
+  - POST /api/analytics/agent-analysis
+  - GET  /api/analytics/guilds/:guildId/analytics
+  
+  🤖 AGENT DISPATCH:
+  - POST /agentDispatch
+  - POST /agentDispatchLegacy
+  
+  🗣️ VOICE & VIDEO:
+  - POST /api/agent/voice/synthesize
+  - GET  /api/agent/voice/voices
+  - POST /api/agent/video/generate
+  - GET  /api/agent/video/status/:videoId
+  
+  🧠 BLUEPRINT GENERATION:
+  - POST /generateBlueprint
+  - POST /api/wizard/generate-blueprint
+  
+  🚀 DEPLOYMENT:
+  - POST /api/deployments/guild
+  - GET  /api/deployments/status/:deploymentId
   `);
 });
 
