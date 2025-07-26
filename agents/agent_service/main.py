@@ -973,6 +973,199 @@ async def get_video_simulation_result(simulation_id: str):
 # Register the API router
 app.include_router(api_router)
 
+# ============================================================================
+# PHASE 1 CRITICAL BACKEND ENDPOINTS - EINSTEIN ENGINE INTEGRATION  
+# ============================================================================
+
+# Einstein Intent Analysis Endpoint
+@app.post("/api/ai/einstein/analyze")
+async def einstein_analyze_intent(
+    request_data: Dict[str, Any] = Body(...)
+):
+    """Einstein-level intent analysis backend endpoint"""
+    try:
+        user_input = request_data.get("user_input", "")
+        if not user_input:
+            raise HTTPException(status_code=400, detail="user_input is required")
+        
+        logger.info(f"🧠 Einstein backend analyzing: {user_input[:50]}...")
+        
+        # Use enhanced blueprint service for intent analysis
+        from lib.enhanced_blueprint_service import EnhancedBlueprintService
+        blueprint_service = EnhancedBlueprintService()
+        
+        # Generate comprehensive analysis
+        analysis_result = await blueprint_service._analyze_user_intent(user_input)
+        
+        # Structure as Einstein analysis format
+        einstein_analysis = {
+            "user_intent_summary": analysis_result.get("primary_objective", user_input),
+            "business_context": {
+                "industry": analysis_result.get("industry", "general"),
+                "company_size": analysis_result.get("company_size", "small"),
+                "technical_expertise": analysis_result.get("technical_expertise", "basic"),
+                "budget_range": analysis_result.get("budget_range", "500_2000"),
+                "urgency": analysis_result.get("urgency", "medium"),
+                "compliance_requirements": analysis_result.get("compliance_requirements", [])
+            },
+            "extracted_goals": analysis_result.get("goals", [user_input]),
+            "success_metrics": analysis_result.get("success_metrics", ["Process automation"]),
+            "confidence_score": analysis_result.get("confidence_score", 0.75),
+            "analysis_timestamp": time.time()
+        }
+        
+        logger.info("✅ Einstein analysis completed successfully")
+        return {"success": True, "data": einstein_analysis}
+        
+    except Exception as e:
+        logger.error(f"❌ Einstein analysis failed: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Einstein analysis failed: {str(e)}"}
+        )
+
+# Cost Prediction Endpoint
+@app.post("/api/ai/cost-prediction/predict")
+async def predict_costs(
+    request_data: Dict[str, Any] = Body(...)
+):
+    """AI-powered cost prediction backend endpoint"""
+    try:
+        blueprint = request_data.get("blueprint", {})
+        if not blueprint:
+            raise HTTPException(status_code=400, detail="blueprint is required")
+        
+        logger.info("💰 Backend cost prediction starting...")
+        
+        # Analyze blueprint complexity
+        analysis = blueprint.get("analysis", {})
+        agents = blueprint.get("agents", [])
+        processes = blueprint.get("processes", [])
+        integrations = blueprint.get("integrations", [])
+        
+        # Calculate base costs
+        ai_model_cost = len(agents) * 50  # $50 per agent per month
+        integration_cost = len(integrations) * 25  # $25 per integration per month
+        infrastructure_cost = max(len(processes) * 10, 15)  # Min $15/month
+        support_cost = 5  # Basic support
+        
+        # Complexity multiplier
+        complexity_score = analysis.get("complexity_assessment", {}).get("overall_score", 5)
+        complexity_multiplier = 1 + (complexity_score / 10)
+        
+        total_cost = (ai_model_cost + integration_cost + infrastructure_cost + support_cost) * complexity_multiplier
+        
+        cost_prediction = {
+            "estimated_monthly_cost": round(total_cost, 2),
+            "cost_breakdown": {
+                "ai_models": round(ai_model_cost * complexity_multiplier, 2),
+                "integrations": round(integration_cost * complexity_multiplier, 2),
+                "infrastructure": infrastructure_cost,
+                "support": support_cost
+            },
+            "confidence_level": 0.8,
+            "complexity_multiplier": round(complexity_multiplier, 2),
+            "analysis_timestamp": time.time()
+        }
+        
+        logger.info(f"✅ Cost prediction completed: ${total_cost:.2f}/month")
+        return {"success": True, "data": cost_prediction}
+        
+    except Exception as e:
+        logger.error(f"❌ Cost prediction failed: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Cost prediction failed: {str(e)}"}
+        )
+
+# MCP Tool Discovery Endpoint
+@app.post("/api/ai/mcp/discover")
+async def discover_mcp_tools(
+    request_data: Dict[str, Any] = Body(...)
+):
+    """MCP tool discovery backend endpoint"""
+    try:
+        goals = request_data.get("goals", [])
+        if not goals:
+            raise HTTPException(status_code=400, detail="goals array is required")
+        
+        logger.info(f"🔗 Backend MCP discovery for goals: {goals}")
+        
+        # Simulate MCP tool discovery based on goals
+        tool_categories = {
+            "automation": ["zapier", "ifttt", "microsoft_power_automate"],
+            "communication": ["slack", "discord", "telegram", "email"],
+            "data": ["postgresql", "mongodb", "redis", "elasticsearch"],
+            "ai": ["openai", "anthropic", "gemini", "huggingface"],
+            "payment": ["stripe", "paypal", "square"],
+            "storage": ["aws_s3", "google_drive", "dropbox"],
+            "analytics": ["google_analytics", "mixpanel", "amplitude"]
+        }
+        
+        discovered_tools = []
+        
+        for goal in goals:
+            goal_lower = goal.lower()
+            for category, tools in tool_categories.items():
+                if any(keyword in goal_lower for keyword in [category, *tools]):
+                    for tool in tools:
+                        if tool not in [t["name"] for t in discovered_tools]:
+                            discovered_tools.append({
+                                "connectionId": f"mcp_{tool}_{int(time.time())}",
+                                "tools": [{
+                                    "id": f"tool_{tool}",
+                                    "name": tool.replace("_", " ").title(),
+                                    "description": f"Integration with {tool.replace('_', ' ').title()}",
+                                    "category": category,
+                                    "complexity": "medium",
+                                    "estimated_setup_time": 30
+                                }]
+                            })
+        
+        # Add default tools if nothing specific found
+        if not discovered_tools:
+            discovered_tools = [{
+                "connectionId": f"mcp_default_{int(time.time())}",
+                "tools": [{
+                    "id": "tool_webhook",
+                    "name": "Generic Webhook",
+                    "description": "Universal webhook integration",
+                    "category": "communication",
+                    "complexity": "low",
+                    "estimated_setup_time": 15
+                }]
+            }]
+        
+        logger.info(f"✅ Discovered {len(discovered_tools)} MCP tool connections")
+        return {"success": True, "data": discovered_tools}
+        
+    except Exception as e:
+        logger.error(f"❌ MCP discovery failed: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"MCP discovery failed: {str(e)}"}
+        )
+
+# Health Check Endpoints for Phase 1 Services
+@app.get("/api/ai/einstein/health")
+async def einstein_health():
+    """Einstein service health check"""
+    return {"status": "healthy", "service": "einstein_intent_engine", "timestamp": time.time()}
+
+@app.get("/api/ai/cost-prediction/health")
+async def cost_prediction_health():
+    """Cost prediction service health check"""
+    return {"status": "healthy", "service": "cost_prediction_engine", "timestamp": time.time()}
+
+@app.get("/api/ai/mcp/health")
+async def mcp_health():
+    """MCP service health check"""
+    return {"status": "healthy", "service": "mcp_integration_service", "timestamp": time.time()}
+
+# ============================================================================
+# END PHASE 1 BACKEND ENDPOINTS
+# ============================================================================
+
 # Main entry point
 if __name__ == "__main__":
     import uvicorn

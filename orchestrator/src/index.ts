@@ -1981,3 +1981,175 @@ process.on('SIGINT', async () => {
   console.log('✅ GenesisOS Orchestrator shutdown complete');
   process.exit(0);
 });
+
+// ============================================================================
+// PHASE 1 CRITICAL ORCHESTRATOR ENDPOINTS - EINSTEIN ENGINE INTEGRATION
+// ============================================================================
+
+// Enhanced Blueprint Generation with Phase 1 Engines  
+app.post('/api/blueprint/enhanced-generate', async (req, res) => {
+  try {
+    const { prompt, usePhase1Engines = true } = req.body;
+    
+    if (!prompt) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Prompt is required' 
+      });
+    }
+
+    console.log('🧠 Enhanced blueprint generation with Phase 1 engines...');
+
+    if (usePhase1Engines) {
+      try {
+        // Try to use Agent Service Phase 1 endpoints
+        const einsteinResponse = await axios.post(`${AGENT_SERVICE_URL}/api/ai/einstein/analyze`, {
+          user_input: prompt
+        });
+
+        if (einsteinResponse.data.success) {
+          const analysis = einsteinResponse.data.data;
+          
+          // Generate blueprint from Einstein analysis
+          const enhancedBlueprint = {
+            id: `enhanced-${Date.now()}`,
+            prompt,
+            analysis,
+            agents: analysis.suggested_agents || [],
+            processes: analysis.identified_processes || [],
+            integrations: analysis.required_integrations || [],
+            cost_prediction: null,
+            mcp_tools: null,
+            created_at: new Date().toISOString(),
+            enhanced: true
+          };
+
+          // Try to add cost prediction
+          try {
+            const costResponse = await axios.post(`${AGENT_SERVICE_URL}/api/ai/cost-prediction/predict`, {
+              blueprint: enhancedBlueprint
+            });
+            if (costResponse.data.success) {
+              enhancedBlueprint.cost_prediction = costResponse.data.data;
+            }
+          } catch (costError) {
+            console.warn('Cost prediction failed, continuing without it');
+          }
+
+          // Try to add MCP tools
+          try {
+            const mcpResponse = await axios.post(`${AGENT_SERVICE_URL}/api/ai/mcp/discover`, {
+              goals: analysis.extracted_goals || [prompt]
+            });
+            if (mcpResponse.data.success) {
+              enhancedBlueprint.mcp_tools = mcpResponse.data.data;
+            }
+          } catch (mcpError) {
+            console.warn('MCP discovery failed, continuing without it');
+          }
+
+          console.log('✅ Enhanced blueprint generated with Phase 1 intelligence');
+          return res.json({
+            success: true,
+            data: { blueprint: enhancedBlueprint },
+            source: 'phase1_engines'
+          });
+        }
+      } catch (phase1Error) {
+        console.warn('Phase 1 engines failed, falling back to legacy blueprint generation');
+      }
+    }
+
+    // Fallback to legacy blueprint generation
+    const blueprint = await blueprintService.generateBlueprint(prompt);
+    
+    res.json({
+      success: true,
+      data: { blueprint },
+      source: 'legacy_fallback'
+    });
+
+  } catch (error) {
+    console.error('Enhanced blueprint generation failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Enhanced blueprint generation failed',
+      details: error.message
+    });
+  }
+});
+
+// Phase 1 Integration Health Check
+app.get('/api/phase1/health', async (req, res) => {
+  try {
+    const healthChecks = {
+      orchestrator: true,
+      agent_service: false,
+      einstein_engine: false,
+      cost_prediction: false,
+      mcp_integration: false
+    };
+
+    // Check Agent Service
+    try {
+      const agentResponse = await axios.get(`${AGENT_SERVICE_URL}/health`, { timeout: 5000 });
+      healthChecks.agent_service = agentResponse.status === 200;
+    } catch (error) {
+      console.warn('Agent service health check failed');
+    }
+
+    // Check Phase 1 endpoints if agent service is healthy
+    if (healthChecks.agent_service) {
+      try {
+        const einsteinCheck = await axios.get(`${AGENT_SERVICE_URL}/api/ai/einstein/health`, { timeout: 3000 });
+        healthChecks.einstein_engine = einsteinCheck.status === 200;
+      } catch (error) {
+        console.warn('Einstein engine health check failed');
+      }
+
+      try {
+        const costCheck = await axios.get(`${AGENT_SERVICE_URL}/api/ai/cost-prediction/health`, { timeout: 3000 });
+        healthChecks.cost_prediction = costCheck.status === 200;
+      } catch (error) {
+        console.warn('Cost prediction health check failed');
+      }
+
+      try {
+        const mcpCheck = await axios.get(`${AGENT_SERVICE_URL}/api/ai/mcp/health`, { timeout: 3000 });
+        healthChecks.mcp_integration = mcpCheck.status === 200;
+      } catch (error) {
+        console.warn('MCP integration health check failed');
+      }
+    }
+
+    const overallHealth = Object.values(healthChecks).every(status => status === true);
+
+    res.json({
+      success: true,
+      data: {
+        overall_healthy: overallHealth,
+        services: healthChecks,
+        phase1_complete: healthChecks.einstein_engine && healthChecks.cost_prediction && healthChecks.mcp_integration,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('Phase 1 health check failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Phase 1 health check failed'
+    });
+  }
+});
+
+// ============================================================================
+// END PHASE 1 ORCHESTRATOR ENDPOINTS  
+// ============================================================================
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`🎯 GenesisOS Orchestrator running on port ${PORT}`);
+  console.log(`🔗 Agent Service URL: ${AGENT_SERVICE_URL}`);
+  console.log(`🧠 Phase 1 Einstein Engines: ${AGENT_SERVICE_URL}/api/ai/*`);
+});
