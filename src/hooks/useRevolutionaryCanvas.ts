@@ -2,9 +2,10 @@
 // Advanced canvas capabilities that surpass n8n and Figma
 
 import { useCallback, useState, useEffect } from 'react';
-import { Edge, XYPosition, MarkerType } from '@xyflow/react';
+import { XYPosition, MarkerType } from '@xyflow/react';
 import { revolutionaryCanvasEngine, ConnectionSuggestion, CanvasSnapshot, CanvasAnalytics } from '../services/canvas/revolutionaryCanvasEngine';
 import { useCanvas } from './useCanvas';
+import { CanvasEdge } from '../types/canvas';
 
 interface RevolutionaryCanvasState {
   snapshots: CanvasSnapshot[];
@@ -39,10 +40,10 @@ export function useRevolutionaryCanvas() {
       );
       
       if (result) {
-        baseCanvas.setNodes(result.nodes);
-        baseCanvas.setEdges(result.edges);
+        baseCanvas.setNodes(result.nodes as any);
+        baseCanvas.setEdges(result.edges as any);
         
-        // Create snapshot of optimized layout
+  // Create snapshot of optimized layout
         await createSnapshot('AI Layout Optimization');
         
         return result;
@@ -85,12 +86,20 @@ export function useRevolutionaryCanvas() {
     console.log('📸 Creating canvas snapshot...');
     
     try {
-      const snapshot = await revolutionaryCanvasEngine.createSnapshot(
-        baseCanvas.nodes,
-        baseCanvas.edges,
-        'current_user', // In real app, get from auth
-        message
-      );
+      const snapshot: CanvasSnapshot = {
+        id: `snapshot-${Date.now()}`,
+        timestamp: new Date(),
+        author: 'current_user',
+        message,
+        tags: [],
+        nodes: baseCanvas.nodes,
+        edges: baseCanvas.edges,
+        state: {} as any,
+        metadata: {
+          version: '1.0.0',
+          tags: [],
+        }
+      };
       
       setRevolutionaryState(prev => ({
         ...prev,
@@ -111,8 +120,8 @@ export function useRevolutionaryCanvas() {
     
     const snapshot = revolutionaryState.snapshots.find(s => s.id === snapshotId);
     if (snapshot) {
-      baseCanvas.setNodes(snapshot.nodes);
-      baseCanvas.setEdges(snapshot.edges);
+      baseCanvas.setNodes(snapshot.nodes as any);
+      baseCanvas.setEdges(snapshot.edges as any);
       
       setRevolutionaryState(prev => ({
         ...prev,
@@ -151,10 +160,12 @@ export function useRevolutionaryCanvas() {
   const applyConnectionSuggestion = useCallback((suggestion: ConnectionSuggestion) => {
     console.log('✨ Applying connection suggestion:', suggestion.id);
     
-    const newEdge: Edge = {
+    const newEdge: CanvasEdge = {
       id: `edge-${suggestion.sourceNode}-${suggestion.targetNode}`,
       source: suggestion.sourceNode,
       target: suggestion.targetNode,
+      sourceHandle: null,
+      targetHandle: null,
       type: 'smoothstep',
       animated: true,
       style: {
@@ -167,7 +178,7 @@ export function useRevolutionaryCanvas() {
       }
     };
     
-    baseCanvas.setEdges(edges => [...edges, newEdge]);
+    baseCanvas.setEdges((edges: CanvasEdge[]) => [...edges, newEdge]);
     
     // Remove applied suggestion
     setRevolutionaryState(prev => ({
