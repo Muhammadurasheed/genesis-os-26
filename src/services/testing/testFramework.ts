@@ -960,6 +960,13 @@ export class TestFramework {
   }
 
   /**
+   * Get current coverage report
+   */
+  getCoverageReport(): CoverageReport | null {
+    return this.coverage;
+  }
+
+  /**
    * Get test execution history
    */
   getExecutionHistory(): TestExecution[] {
