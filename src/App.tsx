@@ -53,7 +53,7 @@ function App() {
     }
   }, [user, loading, guestMode]);
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/health';
+  
 
   if (loading) {
     return (
@@ -82,7 +82,7 @@ function App() {
             </div>
           </div>
         </div>
-        <BackendStatus url={backendUrl} />
+        <BackendStatus />
       </MagicalBackground>
     );
   }
@@ -94,7 +94,7 @@ function App() {
           onGetStarted={() => setGuestMode(true)}
           onSignIn={() => setAppState('auth')}
         />
-        <BackendStatus url={backendUrl} />
+        <BackendStatus />
       </>
     );
   }
@@ -106,7 +106,7 @@ function App() {
           initialError={authError}
           onBack={() => setAppState('landing')}
         />
-        <BackendStatus url={backendUrl} />
+        <BackendStatus />
       </>
     );
   }
@@ -143,7 +143,7 @@ function App() {
       <main>
         {renderCurrentPage()}
       </main>
-      <BackendStatus url={backendUrl} />
+      <BackendStatus />
     </div>
   );
 }
