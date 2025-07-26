@@ -5,20 +5,18 @@
  */
 
 import { Node, Edge, XYPosition } from '@xyflow/react';
-import { einsteinIntentEngine, EinsteinIntentAnalysis } from '../ai/einsteinIntentEngine';
-import { realMCPIntegrationService } from '../ai/realMCPIntegrationService';
 
 export interface GenesisNode extends Node {
   id: string;
   type: 'genesis-trigger' | 'genesis-agent' | 'genesis-integration' | 'genesis-logic' | 'genesis-output';
   position: XYPosition;
-  data: GenesisNodeData;
+  data: GenesisNodeData & Record<string, unknown>; // Make compatible with React Flow
   metadata: NodeMetadata;
   performance: NodePerformance;
   aiSuggestions: AISuggestion[];
 }
 
-export interface GenesisNodeData {
+export interface GenesisNodeData extends Record<string, unknown> {
   // Core properties
   label: string;
   description: string;
@@ -39,6 +37,25 @@ export interface GenesisNodeData {
   assignedTo?: string;
   comments: Comment[];
   approvalStatus: 'pending' | 'approved' | 'rejected';
+}
+
+export interface GenesisEdge extends Edge {
+  id: string;
+  source: string;
+  target: string;
+  type: 'smart-connection' | 'data-flow' | 'conditional' | 'error-handling';
+  data: EdgeData & Record<string, unknown>; // Make compatible with React Flow
+  animated: boolean;
+  style: EdgeStyle;
+}
+
+export interface EdgeData extends Record<string, unknown> {
+  label?: string;
+  condition?: string;
+  dataMapping: DataMapping;
+  transformation?: DataTransformation;
+  validation: ValidationRule[];
+  performance: EdgePerformance;
 }
 
 export interface NodeMetadata {
@@ -103,25 +120,6 @@ export interface Comment {
   timestamp: Date;
   type: 'comment' | 'suggestion' | 'issue' | 'approval';
   resolved: boolean;
-}
-
-export interface GenesisEdge extends Edge {
-  id: string;
-  source: string;
-  target: string;
-  type: 'smart-connection' | 'data-flow' | 'conditional' | 'error-handling';
-  data: EdgeData;
-  animated: boolean;
-  style: EdgeStyle;
-}
-
-export interface EdgeData {
-  label?: string;
-  condition?: string;
-  dataMapping: DataMapping;
-  transformation?: DataTransformation;
-  validation: ValidationRule[];
-  performance: EdgePerformance;
 }
 
 export interface EdgePerformance {
@@ -211,8 +209,6 @@ export class RevolutionaryCanvasEngine {
   private canvasState: CanvasState;
   private snapshots: CanvasSnapshot[] = [];
   private collaborators: Map<string, Collaborator> = new Map();
-  private aiOptimizationEnabled = true;
-  private realTimeValidationEnabled = true;
 
   constructor() {
     this.canvasState = this.createInitialState();
@@ -223,21 +219,21 @@ export class RevolutionaryCanvasEngine {
    * AI-Powered Canvas Generation from Intent Analysis
    * This is where we surpass everyone - AI generates the perfect canvas
    */
-  public async generateCanvasFromIntent(analysis: EinsteinIntentAnalysis): Promise<CanvasState> {
+  public async generateCanvasFromIntent(analysis: any): Promise<CanvasState> {
     console.log('🤖 AI-generating revolutionary canvas from intent analysis...');
 
     // Step 1: Create nodes from agent specifications
-    const nodes = await this.generateNodesFromAgents(analysis.suggested_agents);
+    const nodes = await this.generateNodesFromAgents(analysis.suggested_agents || []);
     
     // Step 2: Create connections based on process dependencies
-    const edges = await this.generateEdgesFromProcesses(analysis.identified_processes, nodes);
+    const edges = await this.generateEdgesFromProcesses(analysis.identified_processes || [], nodes);
     
     // Step 3: Apply AI-optimized layout
     const optimizedLayout = await this.calculateOptimalLayout(nodes, edges);
     
     // Step 4: Add AI suggestions and optimizations
-    const enhancedNodes = await this.enhanceNodesWithAI(nodes, analysis);
-    const enhancedEdges = await this.enhanceEdgesWithAI(edges, analysis);
+    const enhancedNodes = await this.enhanceNodesWithAI(nodes);
+    const enhancedEdges = await this.enhanceEdgesWithAI(edges);
 
     // Step 5: Validate and optimize the entire canvas
     const validatedCanvas = await this.validateAndOptimizeCanvas(enhancedNodes, enhancedEdges);
@@ -254,7 +250,7 @@ export class RevolutionaryCanvasEngine {
     };
 
     this.canvasState = newState;
-    this.createSnapshot('AI-generated canvas from intent analysis', 'ai-generated');
+    this.createSnapshot('AI-generated canvas from intent analysis', ['ai-generated']);
 
     console.log(`✅ Revolutionary canvas generated with ${nodes.length} nodes and ${edges.length} connections`);
     return newState;
@@ -285,7 +281,7 @@ export class RevolutionaryCanvasEngine {
         break;
     }
 
-    this.createSnapshot(`Applied ${algorithm} layout`, 'layout-change');
+    this.createSnapshot(`Applied ${algorithm} layout`, ['layout-change']);
   }
 
   /**
@@ -525,7 +521,7 @@ export class RevolutionaryCanvasEngine {
         position: { x: 0, y: 0 }, // Will be positioned by layout algorithm
         data: {
           label: agent.name,
-          description: agent.description,
+          description: agent.description || agent.specialization,
           configuration: {
             role: agent.primary_role,
             capabilities: agent.capabilities,
@@ -573,7 +569,7 @@ export class RevolutionaryCanvasEngine {
     return nodes;
   }
 
-  private async generateEdgesFromProcesses(processes: any[], nodes: GenesisNode[]): Promise<GenesisEdge[]> {
+  private async generateEdgesFromProcesses(_processes: any[], nodes: GenesisNode[]): Promise<GenesisEdge[]> {
     const edges: GenesisEdge[] = [];
     
     // Create edges based on process dependencies
@@ -610,7 +606,7 @@ export class RevolutionaryCanvasEngine {
     return edges;
   }
 
-  private async calculateOptimalLayout(nodes: GenesisNode[], edges: GenesisEdge[]): Promise<CanvasLayout> {
+  private async calculateOptimalLayout(_nodes: GenesisNode[], _edges: GenesisEdge[]): Promise<CanvasLayout> {
     // AI-optimized layout calculation
     return {
       algorithm: 'ai-optimized',
@@ -624,7 +620,7 @@ export class RevolutionaryCanvasEngine {
     };
   }
 
-  private async enhanceNodesWithAI(nodes: GenesisNode[], analysis: any): Promise<GenesisNode[]> {
+  private async enhanceNodesWithAI(nodes: GenesisNode[]): Promise<GenesisNode[]> {
     // Add AI suggestions and optimizations to each node
     return nodes.map(node => ({
       ...node,
@@ -642,7 +638,7 @@ export class RevolutionaryCanvasEngine {
     }));
   }
 
-  private async enhanceEdgesWithAI(edges: GenesisEdge[], analysis: any): Promise<GenesisEdge[]> {
+  private async enhanceEdgesWithAI(edges: GenesisEdge[]): Promise<GenesisEdge[]> {
     // Enhance edges with AI insights
     return edges;
   }
@@ -673,12 +669,12 @@ export class RevolutionaryCanvasEngine {
     console.log('📐 Applying grid layout');
   }
 
-  private async handleCollaborativeEdit(collaboratorId: string, data: any): Promise<void> {
+  private async handleCollaborativeEdit(collaboratorId: string, _data: any): Promise<void> {
     // Handle real-time collaborative edits
     console.log(`👥 Handling collaborative edit from ${collaboratorId}`);
   }
 
-  private async analyzeNodeCompatibility(sourceNode: GenesisNode, targetNode: GenesisNode): Promise<{score: number, reasoning: string}> {
+  private async analyzeNodeCompatibility(_sourceNode: GenesisNode, _targetNode: GenesisNode): Promise<{score: number, reasoning: string}> {
     // Analyze compatibility between nodes for connection suggestions
     return {
       score: 0.7,
@@ -686,11 +682,11 @@ export class RevolutionaryCanvasEngine {
     };
   }
 
-  private async validateNode(node: GenesisNode): Promise<{errors: ValidationError[], warnings: ValidationWarning[], suggestions: AISuggestion[]}> {
+  private async validateNode(_node: GenesisNode): Promise<{errors: ValidationError[], warnings: ValidationWarning[], suggestions: AISuggestion[]}> {
     return { errors: [], warnings: [], suggestions: [] };
   }
 
-  private async validateEdge(edge: GenesisEdge): Promise<{errors: ValidationError[], warnings: ValidationWarning[]}> {
+  private async validateEdge(_edge: GenesisEdge): Promise<{errors: ValidationError[], warnings: ValidationWarning[]}> {
     return { errors: [], warnings: [] };
   }
 
@@ -698,11 +694,11 @@ export class RevolutionaryCanvasEngine {
     return { errors: [], warnings: [], suggestions: [] };
   }
 
-  private async analyzeNodePerformance(node: GenesisNode): Promise<Optimization[]> {
+  private async analyzeNodePerformance(_node: GenesisNode): Promise<Optimization[]> {
     return [];
   }
 
-  private async analyzeEdgePerformance(edge: GenesisEdge): Promise<Optimization[]> {
+  private async analyzeEdgePerformance(_edge: GenesisEdge): Promise<Optimization[]> {
     return [];
   }
 

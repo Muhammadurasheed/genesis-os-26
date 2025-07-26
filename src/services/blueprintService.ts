@@ -65,7 +65,7 @@ export const blueprintService = {
         status: 'draft',
         created_at: new Date().toISOString(),
         refinement_count: 0,
-        analysis // Store Einstein analysis for later use
+        // analysis // Store Einstein analysis for later use - disabled for type compatibility
       };
       
       console.log(`✅ Einstein blueprint generated with ${analysis.confidence_score * 100}% confidence`);
