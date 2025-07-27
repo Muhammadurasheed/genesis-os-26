@@ -1,5 +1,12 @@
+// Workflow Orchestration Service - Orchestrator Domain
+// SEPARATION OF CONCERNS: Orchestrator handles workflow coordination, canvas operations, real-time collaboration
+
 import { v4 as uuidv4 } from 'uuid';
 import workflowService from './workflowService';
+import axios from 'axios';
+import WebSocket from 'ws';
+
+const AGENT_SERVICE_URL = process.env.AGENT_SERVICE_URL || 'http://localhost:8001';
 
 interface WorkflowNode {
   id: string;
@@ -55,9 +62,12 @@ interface ExecutionMetrics {
 
 class WorkflowOrchestrationService {
   private executionCache: Map<string, any> = new Map();
+  private collaborationSessions: Map<string, Set<WebSocket>> = new Map();
+  private canvasSnapshots: Map<string, any[]> = new Map();
 
   constructor() {
-    console.log('🔄 Workflow Orchestration Service initialized');
+    console.log('🎼 Workflow Orchestration Service initialized - Orchestrator Domain');
+    console.log('🎯 Backend Separation: Orchestrator handles coordination, Agent Service handles AI processing');
   }
 
   /**
