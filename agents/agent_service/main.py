@@ -177,9 +177,13 @@ app.add_middleware(
 # Add version prefix to all routes
 api_router = APIRouter(prefix=f"/{API_VERSION}")
 
-# Health check endpoint
+# Health check endpoints
 @app.get("/")
 async def read_root():
+    return await health_check()
+
+@app.get("/health")
+async def health_check():
     gemini_key = os.getenv("GEMINI_API_KEY")
     elevenlabs_key = os.getenv("ELEVENLABS_API_KEY")
     pinecone_key = os.getenv("PINECONE_API_KEY")
