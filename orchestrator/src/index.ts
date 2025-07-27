@@ -2398,8 +2398,28 @@ app.get('/api/phase1/health', async (req, res) => {
 // END PHASE 1 ORCHESTRATOR ENDPOINTS  
 // ============================================================================
 
-app.listen(PORT, () => {
+// Graceful startup with port availability check
+const server = app.listen(PORT, () => {
   console.log(`🎯 GenesisOS Orchestrator running on port ${PORT}`);
   console.log(`🔗 Agent Service URL: ${AGENT_SERVICE_URL}`);
   console.log(`🧠 Phase 1 Einstein Engines: ${AGENT_SERVICE_URL}/api/ai/*`);
+});
+
+server.on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use. Please kill existing processes:`);
+    console.error(`   Windows: taskkill /f /im node.exe /im ts-node.exe`);
+    console.error(`   Linux/Mac: lsof -ti:${PORT} | xargs kill -9`);
+    process.exit(1);
+  }
+  throw err;
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n🛑 Gracefully shutting down orchestrator...');
+  server.close(() => {
+    console.log('✅ Orchestrator shutdown complete');
+    process.exit(0);
+  });
 });
