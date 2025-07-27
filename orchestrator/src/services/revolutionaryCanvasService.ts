@@ -114,7 +114,10 @@ class RevolutionaryCanvasService extends EventEmitter {
       
     } catch (error) {
       console.error('❌ AI Layout Optimization failed:', error);
-      this.emit('layoutOptimizationFailed', { canvasId, error: error.message });
+      this.emit('layoutOptimizationFailed', { 
+        canvasId, 
+        error: error instanceof Error ? error.message : String(error) 
+      });
       throw error;
     }
   }
@@ -167,7 +170,7 @@ class RevolutionaryCanvasService extends EventEmitter {
       
     } catch (error) {
       console.error('❌ Connection suggestion generation failed:', error);
-      this.emit('connectionSuggestionsFailed', { canvasId, error: error.message });
+      this.emit('connectionSuggestionsFailed', { canvasId, error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -221,7 +224,7 @@ class RevolutionaryCanvasService extends EventEmitter {
       
     } catch (error) {
       console.error('❌ Snapshot creation failed:', error);
-      this.emit('snapshotCreationFailed', { canvasId, error: error.message });
+      this.emit('snapshotCreationFailed', { canvasId, error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }
@@ -257,7 +260,7 @@ class RevolutionaryCanvasService extends EventEmitter {
       
     } catch (error) {
       console.error('❌ Collaboration event handling failed:', error);
-      this.emit('collaborationEventFailed', { canvasId, error: error.message });
+      this.emit('collaborationEventFailed', { canvasId, error: error instanceof Error ? error.message : String(error) });
     }
   }
 
@@ -289,7 +292,7 @@ class RevolutionaryCanvasService extends EventEmitter {
       
     } catch (error) {
       console.error('❌ Snapshot restoration failed:', error);
-      this.emit('snapshotRestorationFailed', { canvasId, error: error.message });
+      this.emit('snapshotRestorationFailed', { canvasId, error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

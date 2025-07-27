@@ -144,8 +144,8 @@ export class SecurityHardeningService extends EventEmitter {
         severity: 'high',
         source: 'unknown',
         target: 'authentication',
-        description: `Authentication failed: ${error.message}`,
-        metadata: { error: error.message, token: token?.substring(0, 10) + '...' }
+        description: `Authentication failed: ${(error instanceof Error ? error.message : String(error))}`,
+        metadata: { error: (error instanceof Error ? error.message : String(error)), token: token?.substring(0, 10) + '...' }
       });
       throw error;
     }
@@ -256,7 +256,7 @@ export class SecurityHardeningService extends EventEmitter {
         framework: framework,
         version: complianceFramework.version,
         auditDate: new Date(),
-        overallStatus: 'compliant' as const,
+        overallStatus: 'compliant' as 'compliant' | 'partial' | 'non_compliant',
         score: 0,
         requirements: [] as any[],
         recommendations: [] as string[]
@@ -438,15 +438,22 @@ export class SecurityHardeningService extends EventEmitter {
   }
   
   private async logSecurityEvent(eventData: Partial<SecurityEvent>): Promise<void> {
+    const {
+      id: _ignoredId, // ignore any incoming id
+      timestamp: _ignoredTimestamp, // ignore any incoming timestamp
+      metadata = {},
+      ...rest
+    } = eventData;
+
     const event: SecurityEvent = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      metadata: {},
-      ...eventData as SecurityEvent
+      metadata,
+      ...rest as Omit<SecurityEvent, 'id' | 'timestamp' | 'metadata'>
     };
-    
+
     this.securityEvents.push(event);
-    
+
     // Keep only last 10000 events
     if (this.securityEvents.length > 10000) {
       this.securityEvents = this.securityEvents.slice(-10000);

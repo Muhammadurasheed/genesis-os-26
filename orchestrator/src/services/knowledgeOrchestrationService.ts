@@ -136,7 +136,8 @@ class KnowledgeOrchestrationService extends EventEmitter {
 
     } catch (error) {
       index.status = 'error';
-      this.emit('indexingError', { indexId, error: error.message });
+      const errorMessage = (error instanceof Error) ? error.message : String(error);
+      this.emit('indexingError', { indexId, error: errorMessage });
       throw error;
     }
   }
@@ -732,7 +733,7 @@ class KnowledgeOrchestrationService extends EventEmitter {
         await task();
         this.emit('taskCompleted', { id });
       } catch (error) {
-        this.emit('taskFailed', { id, error: error.message });
+        this.emit('taskFailed', { id, error: error instanceof Error ? error.message : String(error) });
       }
     }
     

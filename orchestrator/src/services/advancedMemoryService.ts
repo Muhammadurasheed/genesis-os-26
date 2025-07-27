@@ -34,7 +34,7 @@ interface ConsolidationRule {
   id: string;
   name: string;
   condition: (memories: MemoryEntry[]) => boolean;
-  action: (memories: MemoryEntry[]) => MemoryEntry[];
+  action: (memories: MemoryEntry[]) => Promise<MemoryEntry[]> | MemoryEntry[];
   priority: number;
 }
 
@@ -266,7 +266,8 @@ class AdvancedMemoryService extends EventEmitter {
     // Apply consolidation rules in priority order
     for (const rule of this.consolidationRules.sort((a, b) => a.priority - b.priority)) {
       if (rule.condition(processedMemories)) {
-        processedMemories = rule.action(processedMemories);
+        const result = rule.action(processedMemories);
+        processedMemories = result instanceof Promise ? await result : result;
         this.emit('consolidationRuleApplied', { 
           ruleId: rule.id, 
           memoriesProcessed: processedMemories.length 
@@ -380,7 +381,7 @@ class AdvancedMemoryService extends EventEmitter {
     return consolidatedMemories;
   }
 
-  private compressEpisodicSequences(memories: MemoryEntry[]): MemoryEntry[] {
+  private async compressEpisodicSequences(memories: MemoryEntry[]): Promise<MemoryEntry[]> {
     const episodicMemories = memories.filter(m => m.type === 'episodic');
     const otherMemories = memories.filter(m => m.type !== 'episodic');
 

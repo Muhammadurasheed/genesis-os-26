@@ -913,7 +913,7 @@ export class BusinessIntelligenceEngine {
     }, 5 * 60 * 1000); // Every 5 minutes
   }
 
-  private async updateMetricTrends(): void {
+  private async updateMetricTrends(): Promise<void> {
     for (const metric of this.metrics.values()) {
       const data = await this.getMetricData(metric.id, '24h');
 
