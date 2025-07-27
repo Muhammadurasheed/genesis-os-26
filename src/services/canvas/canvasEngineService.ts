@@ -14,7 +14,7 @@ export class CanvasEngineService {
   private orchestratorUrl: string;
 
   constructor() {
-    this.orchestratorUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    this.orchestratorUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
   }
 
   /**

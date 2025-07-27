@@ -122,7 +122,7 @@ interface WorkflowNode {
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3003;
+const PORT = process.env.PORT || 3002;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const AGENT_SERVICE_URL = process.env.AGENT_SERVICE_URL || 'http://localhost:8001';
 console.log(`🚀 GenesisOS Orchestrator starting up at port ${PORT}`);

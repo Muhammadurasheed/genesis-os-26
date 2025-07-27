@@ -3,7 +3,7 @@
 
 import axios from 'axios';
 
-const ORCHESTRATOR_URL = process.env.VITE_ORCHESTRATOR_URL || 'http://localhost:3001';
+const ORCHESTRATOR_URL = process.env.VITE_ORCHESTRATOR_URL || 'http://localhost:3002';
 
 export interface LayoutOptimizationRequest {
   canvasId: string;

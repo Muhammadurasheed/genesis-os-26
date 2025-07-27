@@ -39,7 +39,7 @@ class RealTimeAgentService {
     try {
       const orchestratorUrl = process.env.NODE_ENV === 'production' 
         ? 'wss://genesisos-orchestrator.onrender.com'
-        : 'ws://localhost:3001';
+        : 'ws://localhost:3002';
 
       this.socket = io(orchestratorUrl, {
         transports: ['websocket', 'polling'],

@@ -1,7 +1,7 @@
 // Backend simulation service - routes to appropriate microservices
 // Use agent service for AI-heavy operations, orchestrator for workflow orchestration
 const AGENT_SERVICE_URL = 'http://localhost:8001';
-const ORCHESTRATOR_URL = 'http://localhost:3000';
+const ORCHESTRATOR_URL = 'http://localhost:3002';
 
 export interface SimulationConfig {
   guildId: string;

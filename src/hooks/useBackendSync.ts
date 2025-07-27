@@ -88,7 +88,7 @@ export const useBackendSync = () => {
       };
 
       // Connect to Express WebSocket
-      const expressWs = new WebSocket('ws://localhost:3000/ws/orchestrator');
+      const expressWs = new WebSocket('ws://localhost:3002/ws/orchestrator');
       
       expressWs.onopen = () => {
         console.log('🔗 Connected to Express orchestrator');
@@ -204,7 +204,7 @@ export const useBackendSync = () => {
         }));
 
         // Poll Express
-        const expressResponse = await fetch('http://localhost:3000/health');
+        const expressResponse = await fetch('http://localhost:3002/health');
         setStatus(prev => ({
           ...prev,
           expressStatus: expressResponse.ok ? 'connected' : 'error',
@@ -212,7 +212,7 @@ export const useBackendSync = () => {
         }));
 
         // Get metrics
-        const metricsResponse = await fetch('http://localhost:3000/api/metrics');
+        const metricsResponse = await fetch('http://localhost:3002/api/metrics');
         if (metricsResponse.ok) {
           const metrics = await metricsResponse.json();
           setStatus(prev => ({
@@ -265,7 +265,7 @@ export const useBackendSync = () => {
       sendMessage('express', payload);
 
       // Also send HTTP request as fallback
-      const response = await fetch('http://localhost:3000/api/workflow/execute', {
+      const response = await fetch('http://localhost:3002/api/workflow/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

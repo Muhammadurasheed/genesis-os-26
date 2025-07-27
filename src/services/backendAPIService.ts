@@ -45,7 +45,7 @@ class BackendAPIService {
   constructor() {
     const orchestratorUrl = process.env.NODE_ENV === 'production' 
       ? 'https://genesisos-orchestrator.onrender.com'
-      : 'http://localhost:3001';
+      : 'http://localhost:3002';
     
     const agentServiceUrl = process.env.NODE_ENV === 'production'
       ? 'https://genesisos-agents.onrender.com'

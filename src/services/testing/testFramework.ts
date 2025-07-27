@@ -665,7 +665,7 @@ export class TestFramework {
     try {
       // Test health endpoints of key services
       const services = [
-        'http://localhost:3000/health',
+        'http://localhost:3002/health',
         'http://localhost:8001/health'
       ];
 

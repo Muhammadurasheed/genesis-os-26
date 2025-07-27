@@ -6,7 +6,7 @@ const hasRealBackend = import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE
 
 // Phase 3: Enhanced backend URL detection
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (isDevelopment ? 'http://localhost:3000' : 'https://genesisOS-backend-production.up.railway.app');
+  (isDevelopment ? 'http://localhost:3002' : 'https://genesisOS-backend-production.up.railway.app');
 
 console.log('🔧 Phase 3: Enhanced API Configuration:', {
   isDevelopment,

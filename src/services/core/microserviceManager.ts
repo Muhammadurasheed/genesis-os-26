@@ -30,7 +30,7 @@ class MicroserviceManager {
   }
 
   private initializeServices() {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
     
     // Register default services
     this.registerService('orchestrator', `${baseUrl}`, 10000, 3);
