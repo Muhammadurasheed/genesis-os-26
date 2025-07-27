@@ -93,12 +93,25 @@ class WorkflowOrchestrationService {
     };
     
     // Execute using workflow service
-    const result = await workflowService.executeWorkflow(
+    const workflowResult = await workflowService.executeWorkflow(
       executionId,
       nodes,
       edges,
       standardContext
     );
+    
+    // Create proper ExecutionResult
+    const result: ExecutionResult = {
+      executionId: workflowResult.executionId,
+      status: 'running',
+      startTime: new Date().toISOString(),
+      metadata: {
+        nodeCount: nodes.length,
+        edgeCount: edges.length,
+        tier: 'standard',
+        context: standardContext
+      }
+    };
     
     // Cache execution details
     this.executionCache.set(executionId, {
@@ -141,12 +154,31 @@ class WorkflowOrchestrationService {
     };
     
     // Execute using workflow service with enterprise features
-    const result = await workflowService.executeWorkflow(
+    const workflowResult = await workflowService.executeWorkflow(
       executionId,
       nodes,
       edges,
       enterpriseContext
     );
+    
+    // Create proper ExecutionResult for enterprise
+    const result: ExecutionResult = {
+      executionId: workflowResult.executionId,
+      status: 'running',
+      startTime: new Date().toISOString(),
+      metadata: {
+        nodeCount: nodes.length,
+        edgeCount: edges.length,
+        tier: 'enterprise',
+        context: enterpriseContext,
+        features: {
+          monitoring: enableMonitoring,
+          analytics: enableAnalytics,
+          realtime_updates: true,
+          sla_tracking: true
+        }
+      }
+    };
     
     // Cache execution details with enterprise metadata
     this.executionCache.set(executionId, {

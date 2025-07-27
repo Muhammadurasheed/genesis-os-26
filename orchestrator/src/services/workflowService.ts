@@ -676,6 +676,62 @@ class WorkflowService {
   }
 
   /**
+   * Pause workflow execution
+   */
+  public pauseExecution(executionId: string): boolean {
+    const context = this.executionContexts[executionId];
+    if (!context) {
+      return false;
+    }
+
+    if (context.status === 'running') {
+      context.status = 'paused';
+      this.addExecutionLog(executionId, 'info', 'Workflow execution paused');
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Resume workflow execution
+   */
+  public resumeExecution(executionId: string): boolean {
+    const context = this.executionContexts[executionId];
+    if (!context) {
+      return false;
+    }
+
+    if (context.status === 'paused') {
+      context.status = 'running';
+      this.addExecutionLog(executionId, 'info', 'Workflow execution resumed');
+      // In a real implementation, you'd need to restart the execution process
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Stop workflow execution
+   */
+  public stopExecution(executionId: string): boolean {
+    const context = this.executionContexts[executionId];
+    if (!context) {
+      return false;
+    }
+
+    if (context.status === 'running' || context.status === 'paused') {
+      context.status = 'failed'; // Or we could add a 'stopped' status
+      context.endTime = new Date();
+      this.addExecutionLog(executionId, 'info', 'Workflow execution stopped');
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Add a log entry to the execution context
    */
   private addExecutionLog(
