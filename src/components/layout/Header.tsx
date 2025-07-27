@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { UserCircle, LogOut, Settings, Plus, Users, Bot, Store, BarChart3, Home, Crown } from 'lucide-react';
+import { UserCircle, LogOut, Settings, Plus, Users, Bot, Store, BarChart3, Home, Crown, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { Button } from '../ui/button';
 
-type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics' | 'phase4';
+type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics' | 'phase4' | 'canvas';
 
 interface HeaderProps {
   isGuest?: boolean;
@@ -17,6 +17,7 @@ export const Header: React.FC<HeaderProps> = ({ isGuest = false, currentPage, on
 
   const navigationItems = [
     { key: 'dashboard', label: 'Dashboard', icon: Home },
+    { key: 'canvas', label: 'Canvas', icon: Sparkles },
     { key: 'guilds', label: 'Guilds', icon: Users },
     { key: 'agents', label: 'Agents', icon: Bot },
     { key: 'marketplace', label: 'Marketplace', icon: Store },

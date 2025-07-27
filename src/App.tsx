@@ -17,9 +17,10 @@ import { AgentsPage } from './components/pages/AgentsPage';
 import { GuildsPage } from './components/pages/GuildsPage';
 // import { MarketplacePage } from './components/pages/MarketplacePage';
 import { Phase4CompletionDashboard } from './components/phase4/Phase4CompletionDashboard';
+import { Phase2Canvas } from './components/canvas/Phase2Canvas';
 
 type AppState = 'landing' | 'auth' | 'app';
-type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics' | 'phase4';
+type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics' | 'phase4' | 'canvas';
 
 function App() {
   const { user, loading, initialize } = useAuthStore();
@@ -115,7 +116,9 @@ function App() {
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <MainDashboard />;
+        return <MainDashboard onNavigate={setCurrentPage} />;
+      case 'canvas':
+        return <Phase2Canvas />;
       case 'guilds':
         return <GuildsPage />;
       case 'agents':
@@ -129,7 +132,7 @@ function App() {
       case 'phase4':
         return <Phase4CompletionDashboard />;
       default:
-        return <MainDashboard />;
+        return <MainDashboard onNavigate={setCurrentPage} />;
     }
   };
 

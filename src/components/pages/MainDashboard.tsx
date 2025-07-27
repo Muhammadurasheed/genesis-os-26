@@ -1,11 +1,17 @@
 
 import React from 'react';
-import { Users, Bot, TrendingUp, Zap, Plus, ArrowRight, Play } from 'lucide-react';
+import { Users, Bot, TrendingUp, Zap, Plus, ArrowRight, Play, Sparkles } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { MagicalBackground } from '../ui/MagicalBackground';
 
-export const MainDashboard: React.FC = () => {
+type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics' | 'phase4' | 'canvas';
+
+interface MainDashboardProps {
+  onNavigate?: (page: AppPage) => void;
+}
+
+export const MainDashboard: React.FC<MainDashboardProps> = ({ onNavigate }) => {
   const stats = [
     {
       title: 'Active Digital Workers',
@@ -65,6 +71,13 @@ export const MainDashboard: React.FC = () => {
   ];
 
   const quickActions = [
+    {
+      title: 'Revolutionary Canvas',
+      description: 'Design workflows with AI-powered features that surpass n8n & Figma',
+      icon: Sparkles,
+      action: 'canvas',
+      color: 'from-purple-500 to-pink-500'
+    },
     {
       title: 'Create New Digital Worker',
       description: 'Build a custom AI agent for your business needs',
@@ -131,6 +144,15 @@ export const MainDashboard: React.FC = () => {
                       <div
                         key={index}
                         className="p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200 cursor-pointer group"
+                        onClick={() => {
+                          if (action.action === 'canvas') {
+                            onNavigate?.('canvas');
+                          } else if (action.action === 'create') {
+                            onNavigate?.('wizard');
+                          } else if (action.action === 'setup') {
+                            onNavigate?.('wizard');
+                          }
+                        }}
                       >
                         <div className="flex items-start space-x-3">
                           <div className={`p-2 rounded-lg bg-gradient-to-r ${action.color} group-hover:scale-110 transition-transform`}>
