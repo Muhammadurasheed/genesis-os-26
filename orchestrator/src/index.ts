@@ -26,6 +26,7 @@ import intentUnderstandingEngine from './services/intentUnderstandingEngine';
 import clarificationEngine from './services/clarificationEngine';
 import KnowledgeOrchestrationService from './services/knowledgeOrchestrationService';
 import AdvancedMemoryService from './services/advancedMemoryService';
+import revolutionaryCanvasService from './services/revolutionaryCanvasService';
 
 // Initialize Phase 2.2 Knowledge & Memory Services
 const knowledgeOrchestrationService = new KnowledgeOrchestrationService();
@@ -2316,14 +2317,17 @@ app.post('/api/blueprint/enhanced-generate', async (req, res) => {
       source: 'legacy_fallback'
     });
 
-  } catch (error) {
-    console.error('Enhanced blueprint generation failed:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Enhanced blueprint generation failed',
-      details: error.message
-    });
+  } catch (error: unknown) {
+  let message = "An unknown error occurred";
+  if (error instanceof Error) {
+    message = error.message;
   }
+
+  res.status(500).json({
+    error: 'Guild deployment failed',
+    details: message
+  });
+}
 });
 
 // Phase 1 Integration Health Check
@@ -2394,7 +2398,6 @@ app.get('/api/phase1/health', async (req, res) => {
 // END PHASE 1 ORCHESTRATOR ENDPOINTS  
 // ============================================================================
 
-const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🎯 GenesisOS Orchestrator running on port ${PORT}`);
   console.log(`🔗 Agent Service URL: ${AGENT_SERVICE_URL}`);
