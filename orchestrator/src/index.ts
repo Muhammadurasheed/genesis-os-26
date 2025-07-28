@@ -2159,62 +2159,7 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
-// Start the server
-app.listen(PORT, async () => {
-  await initializeClients();
-  console.log(`🚀 GenesisOS Orchestrator ready at http://localhost:${PORT}`);
-  console.log(`🧠 Intent Understanding Engine: FAANG-LEVEL EXCELLENCE ACTIVE`);
-  console.log(`🤔 Clarification Engine: SOCRATIC QUESTIONING READY`);
-  console.log(`📋 API Endpoints available:
-  
-  🧠 INTENT UNDERSTANDING (NEW - PHASE 2):
-  - POST /intent/analyze                    (Analyze user intent)
-  - POST /intent/:intentId/clarify          (Start clarification session)
-  - POST /clarification/:sessionId/respond  (Submit clarification response)
-  - GET  /clarification/:sessionId/summary  (Get session summary)
-  - POST /intent/:intentId/finalize         (Finalize intent)
-  - GET  /intent/:intentId                  (Get intent details)
-  - GET  /user/:userId/intents              (List user intents)
-  
-  🎨 CANVAS ORCHESTRATION:
-  - POST /generateCanvas
-  - POST /generateEnterpriseCanvas
-  - POST /optimizeLayout
-  
-  🔄 WORKFLOW ORCHESTRATION:
-  - POST /executeFlow
-  - POST /executeEnterpriseFlow
-  - GET  /execution/:executionId
-  - GET  /execution/:executionId/metrics
-  
-  🧪 SIMULATION ORCHESTRATION:
-  - POST /simulation/run
-  - POST /simulation/advanced
-  - GET  /simulation/:simulationId/results
-  
-  📊 ANALYTICS & MONITORING:
-  - POST /api/analytics/agent-analysis
-  - GET  /api/analytics/guilds/:guildId/analytics
-  
-  🤖 AGENT DISPATCH:
-  - POST /agentDispatch
-  - POST /agentDispatchLegacy
-  
-  🗣️ VOICE & VIDEO:
-  - POST /api/agent/voice/synthesize
-  - GET  /api/agent/voice/voices
-  - POST /api/agent/video/generate
-  - GET  /api/agent/video/status/:videoId
-  
-  🧠 BLUEPRINT GENERATION:
-  - POST /generateBlueprint
-  - POST /api/wizard/generate-blueprint
-  
-  🚀 DEPLOYMENT:
-  - POST /api/deployments/guild
-  - GET  /api/deployments/status/:deploymentId
-  `);
-});
+// Server startup is now handled by startServerWithRetry at the bottom of this file
 
 process.on('SIGINT', async () => {
   console.log('🛑 Orchestrator shutting down...');
@@ -2624,8 +2569,8 @@ setupGracefulShutdown();
 
 import { startServerWithRetry } from './startup';
 
-// Start the server with enhanced error handling
-startServerWithRetry(app, Number(PORT))
+// Start the server with enhanced error handling and client initialization
+startServerWithRetry(app, Number(PORT), initializeClients)
   .then((server) => {
     if (server) {
       globalServer = server;
