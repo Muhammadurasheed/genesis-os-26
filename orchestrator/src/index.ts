@@ -2398,77 +2398,233 @@ app.get('/api/phase1/health', async (req, res) => {
 // END PHASE 1 ORCHESTRATOR ENDPOINTS  
 // ============================================================================
 
-// Graceful startup with automatic port cleanup
-async function startServer() {
+// Enhanced port cleanup and graceful startup
+async function killPortProcesses(port: number): Promise<void> {
+  const { exec } = require('child_process');
+  const util = require('util');
+  const execAsync = util.promisify(exec);
+
   try {
-    // Try to kill any processes using the port
     if (process.platform === 'win32') {
-      const { exec } = require('child_process');
-      await new Promise<void>((resolve) => {
-        exec(`netstat -ano | findstr :${PORT}`, (error: any, stdout: string) => {
-          if (stdout) {
-            const lines = stdout.split('\n');
-            const pids = new Set<string>();
-            
-            lines.forEach(line => {
-              const match = line.match(/\s+(\d+)$/);
-              if (match) pids.add(match[1]);
-            });
-            
-            if (pids.size > 0) {
-              console.log(`🔄 Killing ${pids.size} processes on port ${PORT}...`);
-              pids.forEach(pid => {
-                try {
-                  exec(`taskkill /F /PID ${pid}`, () => {});
-                } catch (e) {
-                  // Ignore errors
-                }
-              });
+      // Windows - more aggressive cleanup
+      await execAsync(`taskkill /F /IM node.exe /T 2>nul || echo "No node processes found"`);
+      await execAsync(`taskkill /F /IM ts-node.exe /T 2>nul || echo "No ts-node processes found"`);
+      
+      // Wait for processes to fully terminate
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Check for any remaining processes on the port
+      try {
+        const { stdout } = await execAsync(`netstat -ano | findstr :${port}`);
+        if (stdout.trim()) {
+          const lines = stdout.split('\n');
+          const pids = new Set<string>();
+          
+          lines.forEach(line => {
+            const match = line.match(/\s+(\d+)$/);
+            if (match && match[1] !== '0') pids.add(match[1]);
+          });
+          
+          if (pids.size > 0) {
+            console.log(`🔄 Found ${pids.size} processes still using port ${port}, killing...`);
+            for (const pid of pids) {
+              try {
+                await execAsync(`taskkill /F /PID ${pid}`);
+              } catch (e) {
+                // Ignore individual failures
+              }
             }
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
-          setTimeout(resolve, 1000);
-        });
-      });
-    }
-
-    const server = app.listen(PORT, () => {
-      console.log(`🎯 GenesisOS Orchestrator running on port ${PORT}`);
-      console.log(`🔗 Agent Service URL: ${AGENT_SERVICE_URL}`);
-      console.log(`🧠 Phase 1 Einstein Engines: ${AGENT_SERVICE_URL}/api/ai/*`);
-    });
-
-    server.on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
-        console.error(`❌ Port ${PORT} still in use after cleanup attempt`);
-        console.error(`   Manual cleanup: taskkill //f //im node.exe //im ts-node.exe`);
-        process.exit(1);
+        }
+      } catch (e) {
+        // No processes found on port
       }
-      throw err;
-    });
-
-    return server;
+    } else {
+      // Unix-like systems
+      try {
+        await execAsync(`lsof -ti:${port} | xargs kill -9 2>/dev/null || true`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (e) {
+        // Ignore errors
+      }
+    }
   } catch (error) {
-    console.error('❌ Server startup failed:', error);
-    process.exit(1);
+    console.log(`⚠️ Port cleanup warning: ${error}`);
   }
 }
 
-// Start the server
-let serverInstance: any = null;
+async function startServer() {
+  let server: any = null;
+  let retries = 3;
+  
+  while (retries > 0) {
+    try {
+      // Aggressive port cleanup
+      console.log(`🧹 Cleaning up port ${PORT}...`);
+      await killPortProcesses(PORT);
+      
+      // Create server with retry logic
+      server = app.listen(PORT, () => {
+        console.log(`🚀 GenesisOS Orchestrator ready at http://localhost:${PORT}`);
+        console.log(`🧠 Intent Understanding Engine: FAANG-LEVEL EXCELLENCE ACTIVE`);
+        console.log(`🤔 Clarification Engine: SOCRATIC QUESTIONING READY`);
+        
+        // API Documentation
+        console.log(`📋 API Endpoints available:\n`);
+        console.log(`  🧠 INTENT UNDERSTANDING (NEW - PHASE 2):`);
+        console.log(`  - POST /intent/analyze                    (Analyze user intent)`);
+        console.log(`  - POST /intent/:intentId/clarify          (Start clarification session)`);
+        console.log(`  - POST /clarification/:sessionId/respond  (Submit clarification response)`);
+        console.log(`  - GET  /clarification/:sessionId/summary  (Get session summary)`);
+        console.log(`  - POST /intent/:intentId/finalize         (Finalize intent)`);
+        console.log(`  - GET  /intent/:intentId                  (Get intent details)`);
+        console.log(`  - GET  /user/:userId/intents              (List user intents)\n`);
+        
+        console.log(`  🎨 CANVAS ORCHESTRATION:`);
+        console.log(`  - POST /generateCanvas`);
+        console.log(`  - POST /generateEnterpriseCanvas`);
+        console.log(`  - POST /optimizeLayout\n`);
+        
+        console.log(`  🔄 WORKFLOW ORCHESTRATION:`);
+        console.log(`  - POST /executeFlow`);
+        console.log(`  - POST /executeEnterpriseFlow`);
+        console.log(`  - GET  /execution/:executionId`);
+        console.log(`  - GET  /execution/:executionId/metrics\n`);
+        
+        console.log(`  🧪 SIMULATION ORCHESTRATION:`);
+        console.log(`  - POST /simulation/run`);
+        console.log(`  - POST /simulation/advanced`);
+        console.log(`  - GET  /simulation/:simulationId/results\n`);
+        
+        console.log(`  📊 ANALYTICS & MONITORING:`);
+        console.log(`  - POST /api/analytics/agent-analysis`);
+        console.log(`  - GET  /api/analytics/guilds/:guildId/analytics\n`);
+        
+        console.log(`  🤖 AGENT DISPATCH:`);
+        console.log(`  - POST /agentDispatch`);
+        console.log(`  - POST /agentDispatchLegacy\n`);
+        
+        console.log(`  🗣️ VOICE & VIDEO:`);
+        console.log(`  - POST /api/agent/voice/synthesize`);
+        console.log(`  - GET  /api/agent/voice/voices`);
+        console.log(`  - POST /api/agent/video/generate`);
+        console.log(`  - GET  /api/agent/video/status/:videoId\n`);
+        
+        console.log(`  🧠 BLUEPRINT GENERATION:`);
+        console.log(`  - POST /generateBlueprint`);
+        console.log(`  - POST /api/wizard/generate-blueprint\n`);
+        
+        console.log(`  🚀 DEPLOYMENT:`);
+        console.log(`  - POST /api/deployments/guild`);
+        console.log(`  - GET  /api/deployments/status/:deploymentId\n`);
+      });
 
-startServer().then((server) => {
-  serverInstance = server;
+      // Enhanced error handling
+      server.on('error', (err: any) => {
+        if (err.code === 'EADDRINUSE') {
+          console.error(`❌ Port ${PORT} still in use (attempt ${4 - retries}/3)`);
+          if (retries > 1) {
+            console.log(`🔄 Retrying in 3 seconds...`);
+            retries--;
+            server = null;
+            setTimeout(() => startServer(), 3000);
+            return;
+          } else {
+            console.error(`💀 Unable to start server after 3 attempts`);
+            console.error(`🔧 Manual cleanup required:`);
+            console.error(`   Windows: taskkill /F /IM node.exe && taskkill /F /IM ts-node.exe`);
+            console.error(`   Unix: sudo lsof -ti:${PORT} | xargs kill -9`);
+            process.exit(1);
+          }
+        }
+        console.error('❌ Server error:', err);
+        process.exit(1);
+      });
+
+      return server;
+    } catch (error) {
+      console.error(`❌ Server startup failed (attempt ${4 - retries}/3):`, error);
+      retries--;
+      if (retries === 0) {
+        console.error('💀 All startup attempts failed');
+        process.exit(1);
+      }
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+  }
+}
+
+// Global server instance for graceful shutdown
+let globalServer: any = null;
+
+// Enhanced graceful shutdown
+function setupGracefulShutdown() {
+  const signals = ['SIGINT', 'SIGTERM', 'SIGUSR1', 'SIGUSR2'];
+  
+  signals.forEach((signal) => {
+    process.on(signal, async () => {
+      console.log(`\n🛑 Received ${signal}, gracefully shutting down orchestrator...`);
+      
+      if (globalServer) {
+        try {
+          // Stop accepting new connections
+          globalServer.close(async () => {
+            console.log('🔌 Server connections closed');
+            
+            // Close Redis connection
+            if (redisClient && redisClient.isOpen) {
+              try {
+                await redisClient.quit();
+                console.log('🗄️ Redis connection closed');
+              } catch (err) {
+                console.error('⚠️ Redis shutdown error:', err);
+              }
+            }
+            
+            console.log('✅ Orchestrator shutdown complete');
+            process.exit(0);
+          });
+          
+          // Force exit after 10 seconds
+          setTimeout(() => {
+            console.error('💀 Force exit after 10 seconds');
+            process.exit(1);
+          }, 10000);
+          
+        } catch (error) {
+          console.error('❌ Shutdown error:', error);
+          process.exit(1);
+        }
+      } else {
+        console.log('⚠️ No server instance to close');
+        process.exit(0);
+      }
+    });
+  });
+}
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('💥 Uncaught Exception:', error);
+  process.exit(1);
 });
 
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n🛑 Gracefully shutting down orchestrator...');
-  if (serverInstance) {
-    serverInstance.close(() => {
-      console.log('✅ Orchestrator shutdown complete');
-      process.exit(0);
-    });
-  } else {
-    process.exit(0);
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// Setup graceful shutdown handlers
+setupGracefulShutdown();
+
+// Start the server
+startServer().then((server) => {
+  if (server) {
+    globalServer = server;
+    console.log('✅ Server instance captured for graceful shutdown');
   }
+}).catch((error) => {
+  console.error('💀 Failed to start server:', error);
+  process.exit(1);
 });
