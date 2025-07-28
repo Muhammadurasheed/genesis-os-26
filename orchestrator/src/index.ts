@@ -2420,7 +2420,7 @@ async function killPortProcesses(port: number): Promise<void> {
           const lines = stdout.split('\n');
           const pids = new Set<string>();
           
-          lines.forEach(line => {
+          lines.forEach((line: string) => {
             const match = line.match(/\s+(\d+)$/);
             if (match && match[1] !== '0') pids.add(match[1]);
           });
@@ -2462,7 +2462,7 @@ async function startServer() {
     try {
       // Aggressive port cleanup
       console.log(`🧹 Cleaning up port ${PORT}...`);
-      await killPortProcesses(PORT);
+      await killPortProcesses(Number(PORT));
       
       // Create server with retry logic
       server = app.listen(PORT, () => {
