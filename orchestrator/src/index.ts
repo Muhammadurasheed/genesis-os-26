@@ -2454,13 +2454,21 @@ async function startServer() {
 }
 
 // Start the server
-startServer();
+let serverInstance: any = null;
+
+startServer().then((server) => {
+  serverInstance = server;
+});
 
 // Graceful shutdown
 process.on('SIGINT', () => {
   console.log('\n🛑 Gracefully shutting down orchestrator...');
-  server.close(() => {
-    console.log('✅ Orchestrator shutdown complete');
+  if (serverInstance) {
+    serverInstance.close(() => {
+      console.log('✅ Orchestrator shutdown complete');
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
 });
