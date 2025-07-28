@@ -2398,97 +2398,22 @@ app.get('/api/phase1/health', async (req, res) => {
 // END PHASE 1 ORCHESTRATOR ENDPOINTS  
 // ============================================================================
 
-// Auto-kill processes on port and start server
-const { exec } = require('child_process');
+// Graceful startup with port availability check
+const server = app.listen(PORT, () => {
+  console.log(`🎯 GenesisOS Orchestrator running on port ${PORT}`);
+  console.log(`🔗 Agent Service URL: ${AGENT_SERVICE_URL}`);
+  console.log(`🧠 Phase 1 Einstein Engines: ${AGENT_SERVICE_URL}/api/ai/*`);
+});
 
-function killProcessesOnPort() {
-  return new Promise((resolve) => {
-    if (process.platform === 'win32') {
-      exec(`netstat -ano | findstr :${PORT}`, (error: any, stdout: string) => {
-        if (stdout) {
-          const lines = stdout.split('\n');
-          const pids = lines
-            .map(line => line.trim().split(/\s+/).pop())
-            .filter(pid => pid && pid !== '0')
-            .filter((pid, index, self) => self.indexOf(pid) === index);
-          
-          if (pids.length > 0) {
-            console.log(`🔄 Killing ${pids.length} processes on port ${PORT}...`);
-            pids.forEach(pid => {
-              exec(`taskkill /f /pid ${pid}`, () => {});
-            });
-            setTimeout(resolve, 2000);
-          } else {
-            resolve(undefined);
-          }
-        } else {
-          resolve(undefined);
-        }
-      });
-    } else {
-      exec(`lsof -ti:${PORT}`, (error: any, stdout: string) => {
-        if (stdout) {
-          const pids = stdout.trim().split('\n');
-          console.log(`🔄 Killing ${pids.length} processes on port ${PORT}...`);
-          pids.forEach(pid => {
-            exec(`kill -9 ${pid}`, () => {});
-          });
-          setTimeout(resolve, 1000);
-        } else {
-          resolve(undefined);
-        }
-      });
-    }
-  });
-}
-
-async function startServer() {
-  await killProcessesOnPort();
-  
-  // Add additional delay to ensure processes are fully killed
-  await new Promise(resolve => setTimeout(resolve, 3000));
-  
-  try {
-    const server = app.listen(PORT, () => {
-      console.log(`🎯 GenesisOS Orchestrator running on port ${PORT}`);
-      console.log(`🔗 Agent Service URL: ${AGENT_SERVICE_URL}`);
-      console.log(`🧠 Phase 1 Einstein Engines: ${AGENT_SERVICE_URL}/api/ai/*`);
-      console.log(`✅ Orchestrator successfully started and ready for requests`);
-    });
-
-    server.on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
-        console.error(`❌ Port ${PORT} still in use. Attempting force kill...`);
-        exec(`taskkill /f /t /im node.exe`, () => {
-          exec(`taskkill /f /t /im ts-node.exe`, () => {
-            console.log(`🔄 Processes killed, please restart manually`);
-            process.exit(1);
-          });
-        });
-      } else {
-        throw err;
-      }
-    });
-
-    // Graceful shutdown handlers
-    const gracefulShutdown = () => {
-      console.log('🛑 Graceful shutdown initiated...');
-      server.close(() => {
-        console.log('✅ Server closed successfully');
-        process.exit(0);
-      });
-    };
-
-    process.on('SIGTERM', gracefulShutdown);
-    process.on('SIGINT', gracefulShutdown);
-    
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
+server.on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use. Please kill existing processes:`);
+    console.error(`   Windows: taskkill /f /im node.exe /im ts-node.exe`);
+    console.error(`   Linux/Mac: lsof -ti:${PORT} | xargs kill -9`);
     process.exit(1);
   }
-}
-
-startServer();
+  throw err;
+});
 
 // Graceful shutdown
 process.on('SIGINT', () => {
