@@ -1,17 +1,13 @@
 
 import React from 'react';
-import { Users, Bot, TrendingUp, Zap, Plus, ArrowRight, Play, Sparkles } from 'lucide-react';
+import { Users, Bot, TrendingUp, Zap, Plus, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { MagicalBackground } from '../ui/MagicalBackground';
 
-type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics' | 'phase4' | 'canvas';
+interface MainDashboardProps {}
 
-interface MainDashboardProps {
-  onNavigate?: (page: AppPage) => void;
-}
-
-export const MainDashboard: React.FC<MainDashboardProps> = ({ onNavigate }) => {
+export const MainDashboard: React.FC<MainDashboardProps> = () => {
   const stats = [
     {
       title: 'Active Digital Workers',
@@ -72,24 +68,24 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({ onNavigate }) => {
 
   const quickActions = [
     {
-      title: 'Revolutionary Canvas',
-      description: 'Design workflows with AI-powered features that surpass n8n & Figma',
-      icon: Sparkles,
-      action: 'canvas',
+      title: 'Create New Digital Worker',
+      description: 'Follow our 8-step process to build an AI-powered worker',
+      icon: Plus,
+      action: 'wizard',
       color: 'from-purple-500 to-pink-500'
     },
     {
-      title: 'Create New Digital Worker',
-      description: 'Build a custom AI agent for your business needs',
-      icon: Plus,
-      action: 'create',
+      title: 'Manage Business Guilds',
+      description: 'Organize teams and collaborative workspaces',
+      icon: Users,
+      action: 'guilds',
       color: 'from-blue-500 to-purple-500'
     },
     {
-      title: 'Launch Quick Setup',
-      description: 'Get started with pre-built templates',
-      icon: Play,
-      action: 'setup',
+      title: 'Monitor Performance',
+      description: 'Track analytics and optimize workflows',
+      icon: TrendingUp,
+      action: 'analytics',
       color: 'from-green-500 to-teal-500'
     }
   ];
@@ -145,13 +141,8 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({ onNavigate }) => {
                         key={index}
                         className="p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200 cursor-pointer group"
                         onClick={() => {
-                          if (action.action === 'canvas') {
-                            onNavigate?.('canvas');
-                          } else if (action.action === 'create') {
-                            onNavigate?.('wizard');
-                          } else if (action.action === 'setup') {
-                            onNavigate?.('wizard');
-                          }
+                          // Navigation is handled by the parent AppLayout component
+                          console.log('Quick action clicked:', action.action);
                         }}
                       >
                         <div className="flex items-start space-x-3">

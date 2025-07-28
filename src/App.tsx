@@ -2,25 +2,19 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from './stores/authStore';
 import { RevolutionaryLanding } from './components/landing/RevolutionaryLanding';
 import { AuthForm } from './components/auth/AuthForm';
-import { EnhancedWizardFlow } from './components/wizard/EnhancedWizardFlow';
-import { Header } from './components/layout/Header';
+import { AppLayout } from './components/layout/AppLayout';
 import { BackendStatus } from './components/ui/BackendStatus';
-import { ProductionReadinessDashboard } from './components/phase3/ProductionReadinessDashboard';
 import { QuantumLoader } from './components/ui/QuantumLoader';
 import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard';
 import { MagicalBackground } from './components/ui/MagicalBackground';
 import { getAuthErrorFromURL } from './lib/auth-utils';
-// Import auto-executor to trigger Phase 4 completion
-import './services/phase4AutoExecutor';
 import { MainDashboard } from './components/pages/MainDashboard';
 import { AgentsPage } from './components/pages/AgentsPage';
 import { GuildsPage } from './components/pages/GuildsPage';
-// import { MarketplacePage } from './components/pages/MarketplacePage';
-import { Phase4CompletionDashboard } from './components/phase4/Phase4CompletionDashboard';
-import { Phase2Canvas } from './components/canvas/Phase2Canvas';
+import { GenesisDigitalWorkerWizard } from './components/wizard/GenesisDigitalWorkerWizard';
 
 type AppState = 'landing' | 'auth' | 'app';
-type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics' | 'phase4' | 'canvas';
+type AppPage = 'dashboard' | 'wizard' | 'guilds' | 'agents' | 'analytics' | 'settings';
 
 function App() {
   const { user, loading, initialize } = useAuthStore();
@@ -116,39 +110,34 @@ function App() {
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <MainDashboard onNavigate={setCurrentPage} />;
-      case 'canvas':
-        return <Phase2Canvas />;
+        return <MainDashboard />;
+      case 'wizard':
+        return <GenesisDigitalWorkerWizard />;
       case 'guilds':
         return <GuildsPage />;
       case 'agents':
         return <AgentsPage />;
-      case 'marketplace':
-        return <ProductionReadinessDashboard workspaceId="demo-workspace" />;
-      case 'wizard':
-        return <EnhancedWizardFlow />;
       case 'analytics':
         return <AnalyticsDashboard guildId="main-guild" />;
-      case 'phase4':
-        return <Phase4CompletionDashboard />;
+      case 'settings':
+        return <div className="p-8 text-white">Settings Page - Coming Soon</div>;
       default:
-        return <MainDashboard onNavigate={setCurrentPage} />;
+        return <MainDashboard />;
     }
   };
 
   // User is authenticated or in guest mode - show the main Genesis experience
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header 
-        isGuest={guestMode} 
+    <>
+      <AppLayout 
         currentPage={currentPage}
         onNavigate={setCurrentPage}
-      />
-      <main>
+        isGuest={guestMode}
+      >
         {renderCurrentPage()}
-      </main>
+      </AppLayout>
       <BackendStatus />
-    </div>
+    </>
   );
 }
 

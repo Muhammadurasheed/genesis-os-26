@@ -2445,21 +2445,47 @@ function killProcessesOnPort() {
 async function startServer() {
   await killProcessesOnPort();
   
-  const server = app.listen(PORT, () => {
-    console.log(`🎯 GenesisOS Orchestrator running on port ${PORT}`);
-    console.log(`🔗 Agent Service URL: ${AGENT_SERVICE_URL}`);
-    console.log(`🧠 Phase 1 Einstein Engines: ${AGENT_SERVICE_URL}/api/ai/*`);
-  });
+  // Add additional delay to ensure processes are fully killed
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  
+  try {
+    const server = app.listen(PORT, () => {
+      console.log(`🎯 GenesisOS Orchestrator running on port ${PORT}`);
+      console.log(`🔗 Agent Service URL: ${AGENT_SERVICE_URL}`);
+      console.log(`🧠 Phase 1 Einstein Engines: ${AGENT_SERVICE_URL}/api/ai/*`);
+      console.log(`✅ Orchestrator successfully started and ready for requests`);
+    });
 
-  server.on('error', (err: any) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`❌ Port ${PORT} still in use. Run manually:`);
-      console.error(`   Git Bash: taskkill //f //im node.exe //im ts-node.exe`);
-      console.error(`   CMD: taskkill /f /im node.exe & taskkill /f /im ts-node.exe`);
-      process.exit(1);
-    }
-    throw err;
-  });
+    server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT} still in use. Attempting force kill...`);
+        exec(`taskkill /f /t /im node.exe`, () => {
+          exec(`taskkill /f /t /im ts-node.exe`, () => {
+            console.log(`🔄 Processes killed, please restart manually`);
+            process.exit(1);
+          });
+        });
+      } else {
+        throw err;
+      }
+    });
+
+    // Graceful shutdown handlers
+    const gracefulShutdown = () => {
+      console.log('🛑 Graceful shutdown initiated...');
+      server.close(() => {
+        console.log('✅ Server closed successfully');
+        process.exit(0);
+      });
+    };
+
+    process.on('SIGTERM', gracefulShutdown);
+    process.on('SIGINT', gracefulShutdown);
+    
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
 }
 
 startServer();
