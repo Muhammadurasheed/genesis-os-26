@@ -2618,13 +2618,24 @@ process.on('unhandledRejection', (reason, promise) => {
 // Setup graceful shutdown handlers
 setupGracefulShutdown();
 
-// Start the server
-startServer().then((server) => {
-  if (server) {
-    globalServer = server;
-    console.log('✅ Server instance captured for graceful shutdown');
-  }
-}).catch((error) => {
-  console.error('💀 Failed to start server:', error);
-  process.exit(1);
-});
+// =============================================================================
+// SIMPLIFIED STARTUP WITH EXTERNAL MODULE
+// =============================================================================
+
+import { startServerWithRetry } from './startup';
+
+// Start the server with enhanced error handling
+startServerWithRetry(app, Number(PORT))
+  .then((server) => {
+    if (server) {
+      globalServer = server;
+      console.log('✅ Server instance captured for graceful shutdown');
+      
+      // Keep the process alive
+      process.stdin.resume();
+    }
+  })
+  .catch((error) => {
+    console.error('💀 Failed to start server:', error);
+    process.exit(1);
+  });

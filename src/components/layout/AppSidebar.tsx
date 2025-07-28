@@ -10,7 +10,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from '../ui/sidebar';
 
 type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics';
@@ -36,7 +35,6 @@ export function AppSidebar({ currentPage, onNavigate, isGuest = false }: AppSide
 
   return (
     <Sidebar className="w-64">
-      <SidebarTrigger className="m-2 self-end" />
       
       <SidebarContent>
         {/* Brand */}
