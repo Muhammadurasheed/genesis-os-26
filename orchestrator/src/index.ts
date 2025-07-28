@@ -2398,22 +2398,63 @@ app.get('/api/phase1/health', async (req, res) => {
 // END PHASE 1 ORCHESTRATOR ENDPOINTS  
 // ============================================================================
 
-// Graceful startup with port availability check
-const server = app.listen(PORT, () => {
-  console.log(`🎯 GenesisOS Orchestrator running on port ${PORT}`);
-  console.log(`🔗 Agent Service URL: ${AGENT_SERVICE_URL}`);
-  console.log(`🧠 Phase 1 Einstein Engines: ${AGENT_SERVICE_URL}/api/ai/*`);
-});
+// Graceful startup with automatic port cleanup
+async function startServer() {
+  try {
+    // Try to kill any processes using the port
+    if (process.platform === 'win32') {
+      const { exec } = require('child_process');
+      await new Promise<void>((resolve) => {
+        exec(`netstat -ano | findstr :${PORT}`, (error: any, stdout: string) => {
+          if (stdout) {
+            const lines = stdout.split('\n');
+            const pids = new Set<string>();
+            
+            lines.forEach(line => {
+              const match = line.match(/\s+(\d+)$/);
+              if (match) pids.add(match[1]);
+            });
+            
+            if (pids.size > 0) {
+              console.log(`🔄 Killing ${pids.size} processes on port ${PORT}...`);
+              pids.forEach(pid => {
+                try {
+                  exec(`taskkill /F /PID ${pid}`, () => {});
+                } catch (e) {
+                  // Ignore errors
+                }
+              });
+            }
+          }
+          setTimeout(resolve, 1000);
+        });
+      });
+    }
 
-server.on('error', (err: any) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use. Please kill existing processes:`);
-    console.error(`   Windows: taskkill /f /im node.exe /im ts-node.exe`);
-    console.error(`   Linux/Mac: lsof -ti:${PORT} | xargs kill -9`);
+    const server = app.listen(PORT, () => {
+      console.log(`🎯 GenesisOS Orchestrator running on port ${PORT}`);
+      console.log(`🔗 Agent Service URL: ${AGENT_SERVICE_URL}`);
+      console.log(`🧠 Phase 1 Einstein Engines: ${AGENT_SERVICE_URL}/api/ai/*`);
+    });
+
+    server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT} still in use after cleanup attempt`);
+        console.error(`   Manual cleanup: taskkill //f //im node.exe //im ts-node.exe`);
+        process.exit(1);
+      }
+      throw err;
+    });
+
+    return server;
+  } catch (error) {
+    console.error('❌ Server startup failed:', error);
     process.exit(1);
   }
-  throw err;
-});
+}
+
+// Start the server
+startServer();
 
 // Graceful shutdown
 process.on('SIGINT', () => {

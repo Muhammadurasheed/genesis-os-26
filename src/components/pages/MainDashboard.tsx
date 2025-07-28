@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { MagicalBackground } from '../ui/MagicalBackground';
 
-type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics' | 'phase4' | 'canvas';
+type AppPage = 'dashboard' | 'guilds' | 'agents' | 'marketplace' | 'wizard' | 'analytics';
 
 interface MainDashboardProps {
   onNavigate?: (page: AppPage) => void;
@@ -146,7 +146,7 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({ onNavigate }) => {
                         className="p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200 cursor-pointer group"
                         onClick={() => {
                           if (action.action === 'canvas') {
-                            onNavigate?.('canvas');
+                            onNavigate?.('wizard');
                           } else if (action.action === 'create') {
                             onNavigate?.('wizard');
                           } else if (action.action === 'setup') {
