@@ -1,6 +1,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { ReactFlowProvider } from '@xyflow/react';
 import { useWizardStore } from '../../../stores/wizardStore';
 import { useCanvasStore } from '../../../stores/canvasStore';
 import { useCollaborationStore } from '../../../stores/collaborationStore';
@@ -141,10 +142,12 @@ export const EnhancedCanvasStep: React.FC = () => {
   }
 
     return (
-    <AdvancedGenesisCanvas
-      blueprint={blueprint}
-      onSave={handleSaveBlueprint}
-      onExecute={handleRunSimulation}
-    />
+    <ReactFlowProvider>
+      <AdvancedGenesisCanvas
+        blueprint={blueprint}
+        onSave={handleSaveBlueprint}
+        onExecute={handleRunSimulation}
+      />
+    </ReactFlowProvider>
   );
 };
