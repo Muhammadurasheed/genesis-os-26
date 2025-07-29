@@ -5,7 +5,7 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { useWizardStore } from '../../../stores/wizardStore';
 import { useCanvasStore } from '../../../stores/canvasStore';
 import { useCollaborationStore } from '../../../stores/collaborationStore';
-import { UnifiedCanvasEngine } from '../../canvas/UnifiedCanvasEngine';
+import { ProCanvasEngine } from '../../canvas/ProCanvasEngine';
 import { enterpriseCanvasService } from '../../../services/enterpriseCanvasService';
 import { Brain } from 'lucide-react';
 import { toast } from 'sonner';
@@ -160,12 +160,12 @@ export const EnhancedCanvasStep: React.FC = () => {
           </button>
         </div>
         
-        <UnifiedCanvasEngine
+        <ProCanvasEngine
           blueprint={blueprint}
           onSave={handleSaveBlueprint}
           onExecute={handleRunSimulation}
-          onNextStep={() => nextStep('simulation')}
-          mode="design"
+          onNext={() => nextStep('simulation')}
+          className="h-full"
         />
       </div>
     </ReactFlowProvider>

@@ -19,8 +19,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Gemini API configuration
 GEMINI_API_URL = os.getenv("GEMINI_API_URL", "https://generativelanguage.googleapis.com/v1beta/models")
-GEMINI_PRO_MODEL = os.getenv("GEMINI_PRO_MODEL", "gemini-1.5-pro")
-GEMINI_PRO_VISION_MODEL = os.getenv("GEMINI_PRO_VISION_MODEL", "gemini-1.5-pro")
+GEMINI_PRO_MODEL = os.getenv("GEMINI_PRO_MODEL", "gemini-2.0-flash-lite")
+GEMINI_PRO_VISION_MODEL = os.getenv("GEMINI_PRO_VISION_MODEL", "gemini-2.0-flash-lite") 
 GEMINI_FLASH_MODEL = os.getenv("GEMINI_FLASH_MODEL", "gemini-2.0-flash-lite")
 GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "text-embedding-004")
 GEMINI_DEFAULT_MODEL = os.getenv("GEMINI_DEFAULT_MODEL", GEMINI_FLASH_MODEL)
