@@ -5,7 +5,7 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { useWizardStore } from '../../../stores/wizardStore';
 import { useCanvasStore } from '../../../stores/canvasStore';
 import { useCollaborationStore } from '../../../stores/collaborationStore';
-import { AdvancedGenesisCanvas } from '../../canvas/AdvancedGenesisCanvas';
+import { UnifiedCanvasEngine } from '../../canvas/UnifiedCanvasEngine';
 import { enterpriseCanvasService } from '../../../services/enterpriseCanvasService';
 import { Brain } from 'lucide-react';
 import { toast } from 'sonner';
@@ -143,11 +143,31 @@ export const EnhancedCanvasStep: React.FC = () => {
 
     return (
     <ReactFlowProvider>
-      <AdvancedGenesisCanvas
-        blueprint={blueprint}
-        onSave={handleSaveBlueprint}
-        onExecute={handleRunSimulation}
-      />
+      <div className="w-full h-full flex flex-col">
+        {/* Canvas Header with Next Step Navigation */}
+        <div className="absolute top-4 right-4 z-50 flex gap-2">
+          <button
+            onClick={handleSaveBlueprint}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Save & Continue
+          </button>
+          <button
+            onClick={() => nextStep('simulation')}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+          >
+            Next Step →
+          </button>
+        </div>
+        
+        <UnifiedCanvasEngine
+          blueprint={blueprint}
+          onSave={handleSaveBlueprint}
+          onExecute={handleRunSimulation}
+          onNextStep={() => nextStep('simulation')}
+          mode="design"
+        />
+      </div>
     </ReactFlowProvider>
   );
 };
